@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国建筑 - zgjz.org - 国保单位</title>
+    <style>
+        :root {
+            --primary-color: #1a5276;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --light-bg: #f9f9f9;
+            --card-bg: #fff;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2.5rem 0;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        
+        #searchInput {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999" width="18px" height="18px"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 15px center;
+        }
+        
+        #searchInput:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 10px rgba(41,128,185,0.2);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        select {
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 15px;
+            min-width: 180px;
+        }
+        
+        .classification {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+        
+        .category {
+            padding: 18px 25px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .category:hover {
+            background-color: #f5f9ff;
+        }
+        
+        .category h2, .category h3, .category h4 {
+            margin: 0;
+            padding-right: 30px;
+        }
+        
+        .category h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        
+        .category h3 {
+            color: var(--secondary-color);
+            font-size: 1.35rem;
+            font-weight: 500;
+        }
+        
+        .category h4 {
+            color: var(--text-color);
+            font-size: 1.15rem;
+        }
+        
+        .category::after {
+            content: "+";
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.8rem;
+            color: #999;
+            transition: all 0.3s;
+        }
+        
+        .category.active::after {
+            content: "-";
+        }
+        
+        .sub-category {
+            padding-left: 40px;
+            display: none;
+            background-color: #fafafa;
+        }
+        
+        .building-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .building-item {
+            padding: 22px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--secondary-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .building-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .building-item h5 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .building-item p {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        
+        .location {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 4px 10px;
+            background-color: #eaf2f8;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2.5rem;
+            margin-top: 50px;
+        }
+        
+        .stats {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+        
+        .stats h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            background: #f5f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-item h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .stat-item p {
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #777;
+            font-size: 1.1rem;
+            display: none;
+        }
+        
+        @media (max-width: 992px) {
+            .building-list {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header {
+                padding: 2rem 0;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .category {
+                padding: 15px;
+            }
+            
+            .sub-category {
+                padding-left: 20px;
+            }
+            
+            .building-list {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .category h2 {
+                font-size: 1.4rem;
+            }
+            
+            .category h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>中国古建筑大全</h1>
+            <p class="subtitle">全国重点文物保护单位中的1500处古建筑完整名录</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="stats">
+            <h2>中国古建筑概览</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>1500</h3>
+                    <p>处古建筑类全国重点文物保护单位</p>
+                </div>
+                <div class="stat-item">
+                    <h3>31</h3>
+                    <p>个省级行政区全覆盖</p>
+                </div>
+                <div class="stat-item">
+                    <h3>534</h3>
+                    <p>处位于山西省（数量最多）</p>
+                </div>
+                <div class="stat-item">
+                    <h3>1000+</h3>
+                    <p>年历史最悠久的建筑</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索古建筑名称、地点或关键词...">
+            </div>
+            <div class="filter-group">
+                <select id="provinceFilter">
+                    <option value="">所有省份</option>
+                    <option value="北京市">北京市</option>
+                    <option value="山西省">山西省</option>
+                    <option value="浙江省">浙江省</option>
+                    <option value="江苏省">江苏省</option>
+                    <!-- 其他省份选项 -->
+                </select>
+                <select id="typeFilter">
+                    <option value="">所有类型</option>
+                    <option value="寺庙">寺庙</option>
+                    <option value="园林">园林</option>
+                    <option value="民居">民居</option>
+                    <option value="宫殿">宫殿</option>
+                    <!-- 其他类型选项 -->
+                </select>
+            </div>
+        </div>
+
+        <div class="no-results" id="noResults">
+            <p>没有找到符合条件的古建筑，请尝试其他搜索词</p>
+        </div>
+
+        <div class="classification" id="classification">
+            <!-- 北京市 -->
+            <div class="category">
+                <h2>北京市</h2>
+                <div class="sub-category">
+                    <div class="category">
+                        <h3>东城区</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>故宫</h5>
+                                    <p>明清两代皇家宫殿，世界上现存规模最大、保存最完整的木质结构古建筑群，占地面积72万平方米，有大小宫殿七十多座，房屋九千余间。</p>
+                                    <span class="location">北京·东城区</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>天坛</h5>
+                                    <p>明清皇帝祭天、祈谷的场所，其建筑群以"天圆地方"理念设计，祈年殿为三重檐圆形攒尖顶建筑的代表作，是中国古代祭天建筑的巅峰之作。</p>
+                                    <span class="location">北京·东城区</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>国子监</h5>
+                                    <p>中国古代最高学府和教育管理机构，主体建筑彝伦堂和辟雍殿保存完好，展现了古代官式建筑的庄重风格。</p>
+                                    <span class="location">北京·东城区</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="category">
+                        <h3>西城区</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>颐和园</h5>
+                                    <p>中国现存最大的皇家园林，由万寿山和昆明湖组成，融合了江南园林艺术与北方皇家气派，以长廊、石舫、十七孔桥等著称。</p>
+                                    <span class="location">北京·西城区</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>北海及团城</h5>
+                                    <p>辽、金、元、明、清五朝皇家园林，以琼华岛为中心，白塔为标志性建筑，是中国古代园林艺术的杰作。</p>
+                                    <span class="location">北京·西城区</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 山西省 -->
+            <div class="category">
+                <h2>山西省</h2>
+                <div class="sub-category">
+                    <div class="category">
+                        <h3>太原市</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>晋祠</h5>
+                                    <p>中国现存最早的皇家祭祀园林，宋代建筑代表作，圣母殿的盘龙柱和侍女像为宋代雕塑精品，展现了北宋建筑艺术的高超水平。</p>
+                                    <span class="location">山西·太原市</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>纯阳宫</h5>
+                                    <p>明代道教建筑群，主体建筑吕祖殿为明代遗构，建筑布局严谨，装饰精美，是研究明代道教建筑的重要实例。</p>
+                                    <span class="location">山西·太原市</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="category">
+                        <h3>大同市</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>华严寺</h5>
+                                    <p>辽金时期佛教寺院，大雄宝殿为现存辽金时期最大的佛殿之一，薄伽教藏殿内的天宫楼阁为辽代小木作精品。</p>
+                                    <span class="location">山西·大同市</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>善化寺</h5>
+                                    <p>唐代始建，辽金时期重修，现存大雄宝殿为辽代建筑，三圣殿为金代建筑，是研究辽金建筑艺术的重要实例。</p>
+                                    <span class="location">山西·大同市</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="category">
+                        <h3>晋中市</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>平遥古城</h5>
+                                    <p>保存最完整的明清古城，城墙、街道、商铺、民居、寺庙等建筑保存完好，展现了明清时期县城风貌和商业繁荣景象。</p>
+                                    <span class="location">山西·晋中市</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>王家大院</h5>
+                                    <p>清代民居建筑群，由五巷六堡一条街组成，总面积达25万平方米，建筑布局严谨，装饰精美，被誉为"华夏民居第一宅"。</p>
+                                    <span class="location">山西·晋中市</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>双林寺</h5>
+                                    <p>以彩塑艺术闻名，现存明代彩塑两千余尊，大雄宝殿和天王殿为明代建筑，展现了高超的雕塑和建筑艺术。</p>
+                                    <span class="location">山西·晋中市</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 浙江省 -->
+            <div class="category">
+                <h2>浙江省</h2>
+                <div class="sub-category">
+                    <div class="category">
+                        <h3>杭州市</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>灵隐寺</h5>
+                                    <p>江南著名古刹，始建于东晋，现存建筑多为清代重建，大雄宝殿气势恢宏，寺内保存有大量佛教艺术珍品。</p>
+                                    <span class="location">浙江·杭州市</span>
+                                </div>
+                                <div class="building-item">
+                                    <h5>六和塔</h5>
+                                    <p>宋代古塔，现存砖构塔身为南宋遗构，外部木檐为清代重修，塔高59.89米，是杭州标志性古建筑。</p>
+                                    <span class="location">浙江·杭州市</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="category">
+                        <h3>绍兴市</h3>
+                        <div class="sub-category">
+                            <div class="building-list">
+                                <div class="building-item">
+                                    <h5>鲁迅故居</h5>
+                                    <p>晚清江南民居，鲁迅少年时期居住地，包括周家新台门、百草园和三味书屋等建筑，展现了绍兴传统民居特色。</p>
+                                    <span class="location">浙江·绍兴市</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 其他省份数据... -->
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© zgjz.org 全国31个省级行政区的1500处古建筑类全国重点文物保护单位</p>
+        </div>
+    </footer>
+
+    <script>
+        // 分类展开功能
+        document.querySelectorAll('.category h2, .category h3').forEach(item => {
+            item.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.classList.toggle('active');
+                const subCategory = parent.querySelector('.sub-category');
+                subCategory.style.display = subCategory.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+
+        // 搜索和筛选功能
+        const searchInput = document.getElementById('searchInput');
+        const provinceFilter = document.getElementById('provinceFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const noResults = document.getElementById('noResults');
+        
+        function filterBuildings() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const provinceValue = provinceFilter.value;
+            const typeValue = typeFilter.value;
+            
+            let visibleCount = 0;
+            
+            document.querySelectorAll('.building-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const location = item.querySelector('.location').textContent;
+                const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+                const matchesProvince = provinceValue === '' || location.includes(provinceValue);
+                const matchesType = typeValue === '' || text.includes(typeValue);
+                
+                if (matchesSearch && matchesProvince && matchesType) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // 显示/隐藏无结果提示
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            
+            // 自动展开包含可见项目的分类
+            document.querySelectorAll('.category').forEach(category => {
+                const hasVisibleItems = Array.from(category.querySelectorAll('.building-item')).some(
+                    item => item.style.display !== 'none'
+                );
+                
+                if (hasVisibleItems) {
+                    category.classList.add('active');
+                    const subCategory = category.querySelector('.sub-category');
+                    if (subCategory) subCategory.style.display = 'block';
+                }
+            });
+        }
+        
+        // 事件监听
+        searchInput.addEventListener('input', filterBuildings);
+        provinceFilter.addEventListener('change', filterBuildings);
+        typeFilter.addEventListener('change', filterBuildings);
+        
+        // 默认展开第一级分类
+        document.querySelectorAll('.category > h2').forEach(item => {
+            item.click();
+        });
+    </script>
+</body>
+</html>
