@@ -195,6 +195,42 @@ const App = {
         this.setupEventListeners();
         this.setupNavigation();
         this.render();
+        // 首页显示后，后台静默加载所有省份数据
+        this._preloadAllData();
+    },
+
+    // 数据加载完成回调
+    _onDataLoadedCallbacks: [],
+
+    // 注册数据加载完成回调
+    onDataLoaded(callback) {
+        if (this._allDataLoaded) {
+            callback();
+        } else {
+            this._onDataLoadedCallbacks.push(callback);
+        }
+    },
+
+    // 后台预加载所有数据
+    async _preloadAllData() {
+        const allProvinces = Object.keys(this.dataModules);
+        const batchSize = 3;
+
+        for (let i = 0; i < allProvinces.length; i += batchSize) {
+            const batch = allProvinces.slice(i, i + batchSize);
+            await Promise.all(batch.map(id => this.loadProvinceData(id)));
+            // 每加载完一批，触发一次回调（让页面可以渐进更新）
+            this._onDataLoadedCallbacks.forEach(cb => {
+                try { cb(); } catch (e) {}
+            });
+        }
+
+        this._allDataLoaded = true;
+        // 全部加载完成，再次触发回调
+        this._onDataLoadedCallbacks.forEach(cb => {
+            try { cb(); } catch (e) {}
+        });
+        this._onDataLoadedCallbacks = [];
     },
 
     // 设置主题
@@ -316,6 +352,58 @@ const App = {
         'cross': 'CrossProvinceData'
     },
 
+    // 已加载的模块
+    _loadedModules: new Set(),
+
+    // 脚本文件名映射（当 provinceId 和文件名不一致时使用）
+    scriptFileMap: {
+        'cross': 'cross-province'
+    },
+
+    // 按需加载省份数据
+    async loadProvinceData(provinceId) {
+        const moduleName = this.dataModules[provinceId];
+        if (!moduleName) return null;
+
+        // 如果已经加载过，直接返回
+        if (this._loadedModules.has(provinceId)) {
+            return window[moduleName];
+        }
+
+        // 如果已经在window中，标记为已加载
+        if (typeof window[moduleName] !== 'undefined') {
+            this._loadedModules.add(provinceId);
+            return window[moduleName];
+        }
+
+        // 动态加载脚本
+        const fileName = this.scriptFileMap[provinceId] || provinceId;
+        try {
+            await this._loadScript(`data/${fileName}.js?v=3`);
+            this._loadedModules.add(provinceId);
+            return window[moduleName];
+        } catch (error) {
+            return null;
+        }
+    },
+
+    // 加载单个脚本
+    _loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    },
+
+    // 加载多个省份数据
+    async loadProvinces(provinceIds) {
+        const promises = provinceIds.map(id => this.loadProvinceData(id));
+        await Promise.all(promises);
+    },
+
     // 根据完整路径查找建筑
     findBuildingByFullPath(fullPath) {
         for (const [provinceId, moduleName] of Object.entries(this.dataModules)) {
@@ -404,16 +492,16 @@ const App = {
         let items = [{ name: '🏠 首页', hash: 'home' }];
 
         if (this.state.currentView === 'provinces') {
-            items.push({ name: '🗺️ 按省份浏览', hash: 'provinces' });
+            items.push({ name: '🗺️ 省份', hash: 'provinces' });
         } else if (this.state.currentView === 'province' && this.state.currentProvince) {
-            items.push({ name: '🗺️ 按省份浏览', hash: 'provinces' });
+            items.push({ name: '🗺️ 省份', hash: 'provinces' });
             const province = ProvincesData.getProvinceById(this.state.currentProvince);
             if (province) {
                 const style = this.getProvinceStyle(this.state.currentProvince);
                 items.push({ name: `${style.icon} ${province.name}`, hash: `province/${province.id}` });
             }
         } else if (this.state.currentView === 'district' && this.state.currentProvince && this.state.currentDistrict) {
-            items.push({ name: '🗺️ 按省份浏览', hash: 'provinces' });
+            items.push({ name: '🗺️ 省份', hash: 'provinces' });
             const province = ProvincesData.getProvinceById(this.state.currentProvince);
             if (province) {
                 const provinceStyle = this.getProvinceStyle(this.state.currentProvince);
@@ -426,7 +514,7 @@ const App = {
         } else if (this.state.currentView === 'building' && this.state.currentBuildingName) {
             const building = this.findBuildingByFullPath(this.state.currentBuildingName);
             if (building) {
-                items.push({ name: '🗺️ 按省份浏览', hash: 'provinces' });
+                items.push({ name: '🗺️ 省份', hash: 'provinces' });
                 const provinceStyle = this.getProvinceStyle(building.provinceId);
                 items.push({ name: `${provinceStyle.icon} ${building.province}`, hash: `province/${building.provinceId}` });
                 items.push({ name: `📍 ${building.districtName}`, hash: `province/${building.provinceId}/${building.district}` });
@@ -443,9 +531,9 @@ const App = {
         } else if (this.state.currentView === 'cross') {
             items.push({ name: '🌊 跨省文物保护单位', hash: 'cross', active: true });
         } else if (this.state.currentView === 'topics') {
-            items.push({ name: '📚 专题', hash: 'topics', active: true });
+            items.push({ name: '📚 故事', hash: 'topics', active: true });
         } else if (this.state.currentView === 'topic' && this.state.currentTopic) {
-            items.push({ name: '📚 专题', hash: 'topics' });
+            items.push({ name: '📚 故事', hash: 'topics' });
             const topic = TopicsData.getTopicById(this.state.currentTopic);
             if (topic) {
                 items.push({ name: `${topic.icon} ${topic.title}`, hash: `topic/${topic.id}`, active: true });
@@ -506,9 +594,25 @@ const App = {
     },
 
     // 渲染首页
-    renderHome(container) {
+    async renderHome(container) {
         const allTopics = TopicsData.getAllTopics();
         const shuffledTopics = this.shuffleArray([...allTopics]).slice(0, 3);
+
+        // 收集需要加载的省份
+        const provincesToLoad = new Set();
+        shuffledTopics.forEach(topic => {
+            const story = topic.story;
+            const shuffledChapters = this.shuffleArray([...story.chapters]);
+            const featuredChapter = shuffledChapters[0];
+            featuredChapter.buildings.forEach(b => {
+                if (b && b.province) provincesToLoad.add(b.province);
+            });
+        });
+
+        // 按需加载需要的省份数据
+        if (provincesToLoad.size > 0) {
+            await this.loadProvinces([...provincesToLoad]);
+        }
 
         container.innerHTML = `
             <div class="container">
@@ -572,9 +676,11 @@ const App = {
 
     // 渲染省份列表
     renderProvinces(container) {
+        const crossStyle = this.getProvinceStyle('cross');
+
         container.innerHTML = `
             <div class="container">
-                <h2 class="section-title"><span class="section-icon">🗺️</span> 按省份浏览</h2>
+                <h2 class="section-title"><span class="section-icon">🗺️</span> 省份</h2>
                 <div class="province-grid">
                     ${ProvincesData.getAllProvinces().map(province => {
                         const style = this.getProvinceStyle(province.id);
@@ -588,12 +694,23 @@ const App = {
                         </div>
                     `}).join('')}
                 </div>
+
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light);">
+                    <h3 class="section-title" style="font-size: 1rem;"><span class="section-icon">🌊</span> 跨省文物保护单位</h3>
+                    <div class="province-card" onclick="window.location.hash='cross'" style="border-left-color: ${crossStyle.color}; max-width: 400px;">
+                        <div class="province-icon" style="background: ${crossStyle.bgColor}; color: ${crossStyle.color};">${crossStyle.icon}</div>
+                        <div class="province-info">
+                            <div class="province-name">跨省文物保护单位</div>
+                            <div class="province-count">点击查看全部</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     },
 
     // 渲染省份详情
-    renderProvince(container, provinceId) {
+    async renderProvince(container, provinceId) {
         const province = ProvincesData.getProvinceById(provinceId);
         const provinceStyle = this.getProvinceStyle(provinceId);
 
@@ -609,6 +726,9 @@ const App = {
             `;
             return;
         }
+
+        // 按需加载省份数据
+        await this.loadProvinceData(provinceId);
 
         let districts = [];
         let allBuildings = [];
@@ -713,7 +833,10 @@ const App = {
     },
 
     // 渲染区县详情
-    renderDistrict(container, provinceId, districtId) {
+    async renderDistrict(container, provinceId, districtId) {
+        // 按需加载省份数据
+        await this.loadProvinceData(provinceId);
+
         const province = ProvincesData.getProvinceById(provinceId);
         const district = this.getDistrictData(provinceId, districtId);
         const provinceStyle = this.getProvinceStyle(provinceId);
@@ -761,8 +884,16 @@ const App = {
     },
 
     // 渲染建筑详情
-    renderBuilding(container, buildingName) {
-        const building = this.findBuildingByFullPath(buildingName);
+    async renderBuilding(container, buildingName) {
+        // 先尝试查找建筑
+        let building = this.findBuildingByFullPath(buildingName);
+
+        // 如果没找到，尝试加载所有省份数据
+        if (!building) {
+            const allProvinces = Object.keys(this.dataModules);
+            await this.loadProvinces(allProvinces);
+            building = this.findBuildingByFullPath(buildingName);
+        }
 
         if (!building) {
             container.innerHTML = `
@@ -931,6 +1062,27 @@ const App = {
     // 渲染标签页面
     renderTags(container) {
         const tags = DataLoader.getAllTags();
+
+        // 如果数据还没加载完，显示加载状态并等待
+        if (tags.length === 0) {
+            container.innerHTML = `
+                <div class="container">
+                    <div class="loading-state" style="text-align: center; padding: 4rem 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔄</div>
+                        <div style="font-size: 1.125rem; color: var(--text-primary); margin-bottom: 0.5rem;">数据加载中...</div>
+                        <div style="font-size: 0.875rem; color: var(--text-muted);">正在加载所有省份数据，请稍候</div>
+                    </div>
+                </div>
+            `;
+            // 注册回调，数据加载完成后重新渲染
+            this.onDataLoaded(() => {
+                if (this.state.currentView === 'tags') {
+                    this.renderTags(container);
+                }
+            });
+            return;
+        }
+
         const maxCount = Math.max(...tags.map(t => t.count));
         const minCount = Math.min(...tags.map(t => t.count));
 
@@ -942,8 +1094,8 @@ const App = {
                         // 计算字体大小 (14px - 24px)
                         const size = minCount === maxCount ? 16 : 14 + (tag.count - minCount) / (maxCount - minCount) * 10;
                         return `
-                        <span class="tag-modern" 
-                              onclick="window.location.hash='tag/${encodeURIComponent(tag.name)}'" 
+                        <span class="tag-modern"
+                              onclick="window.location.hash='tag/${encodeURIComponent(tag.name)}'"
                               style="font-size: ${size}px; background: ${tagStyle.bg}; color: ${tagStyle.color}; border: 1px solid ${tagStyle.color}30;">
                             <span class="tag-modern-icon">${tagStyle.icon}</span>
                             <span class="tag-modern-name">${tag.name}</span>
@@ -1059,6 +1211,25 @@ const App = {
 
     // 渲染搜索页面结果
     renderSearchPageResults(query, container) {
+        const allBuildings = DataLoader.getAllBuildings();
+
+        // 如果数据还没加载完，显示加载状态
+        if (allBuildings.length === 0) {
+            container.innerHTML = `
+                <div class="search-page-loading" style="text-align: center; padding: 3rem 2rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔄</div>
+                    <div style="font-size: 1rem; color: var(--text-primary);">数据加载中，请稍候...</div>
+                </div>
+            `;
+            // 注册回调，数据加载完成后自动重新搜索
+            this.onDataLoaded(() => {
+                if (this.state.currentView === 'search') {
+                    this.renderSearchPageResults(query, container);
+                }
+            });
+            return;
+        }
+
         const results = DataLoader.searchBuildings(query);
 
         if (results.length === 0) {
@@ -1193,11 +1364,54 @@ const App = {
     },
 
     // 渲染跨省文物保护单位页面
-    renderCrossProvince(container) {
-        const crossBuildings = CrossProvinceData.getAllBuildings();
+    async renderCrossProvince(container) {
+        // 显示加载状态
+        container.innerHTML = `
+            <div class="container">
+                <div class="loading-state" style="text-align: center; padding: 4rem 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔄</div>
+                    <div style="font-size: 1.125rem; color: var(--text-primary);">正在加载跨省数据...</div>
+                </div>
+            </div>
+        `;
+
+        // 跨省数据文件名为 cross-province.js，但模块名为 CrossProvinceData
+        // 先尝试直接加载脚本
+        if (!window.CrossProvinceData) {
+            try {
+                await this._loadScript('data/cross-province.js?v=3');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="container">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div class="empty-state-title">加载失败</div>
+                            <p>无法加载跨省文物保护单位数据</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+        }
+
+        if (!window.CrossProvinceData || typeof window.CrossProvinceData.getAllBuildings !== 'function') {
+            container.innerHTML = `
+                <div class="container">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-title">暂无数据</div>
+                        <p>跨省文物保护单位数据暂未收录</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const crossBuildings = window.CrossProvinceData.getAllBuildings();
 
         container.innerHTML = `
             <div class="container">
+                <h2 class="section-title"><span class="section-icon">🌊</span> 跨省文物保护单位</h2>
                 <div class="building-grid">
                     ${crossBuildings.map(building => this.createBuildingCard(building)).join('')}
                 </div>
@@ -1211,7 +1425,7 @@ const App = {
 
         container.innerHTML = `
             <div class="container">
-                <h2 class="section-title"><span class="section-icon">📚</span> 专题</h2>
+                <h2 class="section-title"><span class="section-icon">📚</span> 故事</h2>
                 <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">跟着名著、历史事件，开启古建之旅</p>
                 <div class="topics-grid">
                     ${topics.map(topic => `
@@ -1230,18 +1444,34 @@ const App = {
     },
 
     // 渲染专题详情页
-    renderTopicDetail(container, topicId) {
+    async renderTopicDetail(container, topicId) {
         const topic = TopicsData.getTopicById(topicId);
         if (!topic) {
             container.innerHTML = `
                 <div class="container">
                     <div class="empty-state">
                         <div class="empty-state-icon">📚</div>
-                        <div class="empty-state-title">专题未找到</div>
+                        <div class="empty-state-title">故事未找到</div>
                     </div>
                 </div>
             `;
             return;
+        }
+
+        // 收集需要加载的省份
+        const provincesToLoad = new Set();
+        topic.story.chapters.forEach(chapter => {
+            chapter.buildings.forEach(b => {
+                if (b && b.province) provincesToLoad.add(b.province);
+            });
+        });
+        topic.story.allBuildings.forEach(b => {
+            if (b && b.province) provincesToLoad.add(b.province);
+        });
+
+        // 按需加载需要的省份数据
+        if (provincesToLoad.size > 0) {
+            await this.loadProvinces([...provincesToLoad]);
         }
 
         const story = topic.story;
@@ -1299,7 +1529,7 @@ const App = {
 
                 ${story.allBuildings.length > 0 ? `
                 <div class="topic-all-buildings">
-                    <h3 class="section-title"><span class="section-icon">🏛️</span> 专题涉及古建一览</h3>
+                    <h3 class="section-title"><span class="section-icon">🏛️</span> 故事涉及古建一览</h3>
                     <div class="building-grid">
                         ${story.allBuildings.map(b => {
                             const moduleName = this.dataModules[b.province];
