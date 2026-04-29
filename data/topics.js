@@ -1,91 +1,104 @@
 // 专题数据 - 跟着名著游古建
 const TopicsData = {
-    // 所有专题列表
+    // 基础信息列表（轻量级，用于首页和列表页）
+    _topicMetas: [
+        {
+            id: 'journey-to-the-west',
+            title: '西游取经路',
+            subtitle: '跟着《西游记》游中国古建',
+            icon: '🐵',
+            color: '#e67e22',
+            bgColor: '#fef3e2',
+            description: '从长安出发，沿着玄奘法师西行取经的路线，探访那些与《西游记》有着千丝万缕联系的历史古建。'
+        },
+        {
+            id: 'water-margin',
+            title: '水浒英雄志',
+            subtitle: '跟着《水浒传》游中国古建',
+            icon: '🗡️',
+            color: '#c0392b',
+            bgColor: '#fdedec',
+            description: '从梁山泊到东京汴梁，追随一百单八将的足迹，探访那些见证英雄传奇的历史古建。'
+        },
+        {
+            id: 'romance-of-three-kingdoms',
+            title: '三国风云录',
+            subtitle: '跟着《三国演义》游中国古建',
+            icon: '⚔️',
+            color: '#2980b9',
+            bgColor: '#eaf2f8',
+            description: '从桃园结义到三国归晋，追随魏蜀吴的英雄足迹，探访那些见证乱世风云的历史古建。'
+        },
+        {
+            id: 'dream-of-red-chamber',
+            title: '红楼一梦',
+            subtitle: '跟着《红楼梦》游中国古建',
+            icon: '🌸',
+            color: '#e91e63',
+            bgColor: '#fce4ec',
+            description: '从金陵到京都，走进大观园的世界，探访那些承载宝黛情缘的历史古建。'
+        },
+        {
+            id: 'legend-of-white-snake',
+            title: '白蛇传奇',
+            subtitle: '跟着《白蛇传》游中国古建',
+            icon: '🐍',
+            color: '#27ae60',
+            bgColor: '#eafaf1',
+            description: '从西湖断桥到雷峰塔下，追随白素贞与许仙的爱情足迹，探访那些见证千年情缘的历史古建。'
+        },
+        {
+            id: 'west-chamber',
+            title: '西厢情缘',
+            subtitle: '跟着《西厢记》游中国古建',
+            icon: '💕',
+            color: '#9b59b6',
+            bgColor: '#f5eef8',
+            description: '从普救寺到长亭送别，追随张生与崔莺莺的爱情足迹，探访那些见证才子佳人的历史古建。'
+        },
+        {
+            id: 'liao-zhai',
+            title: '聊斋志异',
+            subtitle: '跟着《聊斋志异》游中国古建',
+            icon: '🦊',
+            color: '#34495e',
+            bgColor: '#f2f4f6',
+            description: '从柳泉居士的茅屋到狐仙鬼怪的居所，探访那些承载蒲松龄奇思妙想的历史古建。'
+        }
+    ],
+
+    // 获取所有专题列表（轻量级，不含故事详情）
     getAllTopics() {
-        return [
-            {
-                id: 'journey-to-the-west',
-                title: '西游取经路',
-                subtitle: '跟着《西游记》游中国古建',
-                icon: '🐵',
-                color: '#e67e22',
-                bgColor: '#fef3e2',
-                description: '从长安出发，沿着玄奘法师西行取经的路线，探访那些与《西游记》有着千丝万缕联系的历史古建。',
-                coverImage: null,
-                story: this.getJourneyToWestStory()
-            },
-            {
-                id: 'water-margin',
-                title: '水浒英雄志',
-                subtitle: '跟着《水浒传》游中国古建',
-                icon: '🗡️',
-                color: '#c0392b',
-                bgColor: '#fdedec',
-                description: '从梁山泊到东京汴梁，追随一百单八将的足迹，探访那些见证英雄传奇的历史古建。',
-                coverImage: null,
-                story: this.getWaterMarginStory()
-            },
-            {
-                id: 'romance-of-three-kingdoms',
-                title: '三国风云录',
-                subtitle: '跟着《三国演义》游中国古建',
-                icon: '⚔️',
-                color: '#2980b9',
-                bgColor: '#eaf2f8',
-                description: '从桃园结义到三国归晋，追随魏蜀吴的英雄足迹，探访那些见证乱世风云的历史古建。',
-                coverImage: null,
-                story: this.getThreeKingdomsStory()
-            },
-            {
-                id: 'dream-of-red-chamber',
-                title: '红楼一梦',
-                subtitle: '跟着《红楼梦》游中国古建',
-                icon: '🌸',
-                color: '#e91e63',
-                bgColor: '#fce4ec',
-                description: '从金陵到京都，走进大观园的世界，探访那些承载宝黛情缘的历史古建。',
-                coverImage: null,
-                story: this.getDreamOfRedChamberStory()
-            },
-            {
-                id: 'legend-of-white-snake',
-                title: '白蛇传奇',
-                subtitle: '跟着《白蛇传》游中国古建',
-                icon: '🐍',
-                color: '#27ae60',
-                bgColor: '#eafaf1',
-                description: '从西湖断桥到雷峰塔下，追随白素贞与许仙的爱情足迹，探访那些见证千年情缘的历史古建。',
-                coverImage: null,
-                story: this.getWhiteSnakeStory()
-            },
-            {
-                id: 'west-chamber',
-                title: '西厢情缘',
-                subtitle: '跟着《西厢记》游中国古建',
-                icon: '💕',
-                color: '#9b59b6',
-                bgColor: '#f5eef8',
-                description: '从普救寺到长亭送别，追随张生与崔莺莺的爱情足迹，探访那些见证才子佳人的历史古建。',
-                coverImage: null,
-                story: this.getWestChamberStory()
-            },
-            {
-                id: 'liao-zhai',
-                title: '聊斋志异',
-                subtitle: '跟着《聊斋志异》游中国古建',
-                icon: '🦊',
-                color: '#34495e',
-                bgColor: '#f2f4f6',
-                description: '从柳泉居士的茅屋到狐仙鬼怪的居所，探访那些承载蒲松龄奇思妙想的历史古建。',
-                coverImage: null,
-                story: this.getLiaoZhaiStory()
-            }
-        ];
+        return this._topicMetas.map(meta => ({
+            ...meta,
+            coverImage: null,
+            story: this._getStoryById(meta.id)
+        }));
     },
 
     // 根据ID获取专题
     getTopicById(id) {
-        return this.getAllTopics().find(t => t.id === id);
+        const meta = this._topicMetas.find(t => t.id === id);
+        if (!meta) return null;
+        return {
+            ...meta,
+            coverImage: null,
+            story: this._getStoryById(id)
+        };
+    },
+
+    // 内部方法：根据ID获取故事内容
+    _getStoryById(id) {
+        switch (id) {
+            case 'journey-to-the-west': return this.getJourneyToWestStory();
+            case 'water-margin': return this.getWaterMarginStory();
+            case 'romance-of-three-kingdoms': return this.getThreeKingdomsStory();
+            case 'dream-of-red-chamber': return this.getDreamOfRedChamberStory();
+            case 'legend-of-white-snake': return this.getWhiteSnakeStory();
+            case 'west-chamber': return this.getWestChamberStory();
+            case 'liao-zhai': return this.getLiaoZhaiStory();
+            default: return null;
+        }
     },
 
     // 西游记专题故事

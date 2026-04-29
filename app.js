@@ -211,26 +211,50 @@ const App = {
         }
     },
 
-    // 后台预加载所有数据
+    // 后台预加载数据 - 优先加载常用省份，其他按需加载
     async _preloadAllData() {
-        const allProvinces = Object.keys(this.dataModules);
-        const batchSize = 3;
+        // 优先加载的省份（数据量大且常用）
+        const priorityProvinces = [
+            'beijing', 'shanxi', 'henan', 'shaanxi', 'sichuan',
+            'jiangsu', 'zhejiang', 'shandong', 'hebei'
+        ];
 
-        for (let i = 0; i < allProvinces.length; i += batchSize) {
-            const batch = allProvinces.slice(i, i + batchSize);
+        // 先加载优先省份
+        for (let i = 0; i < priorityProvinces.length; i += 2) {
+            const batch = priorityProvinces.slice(i, i + 2);
             await Promise.all(batch.map(id => this.loadProvinceData(id)));
-            // 每加载完一批，触发一次回调（让页面可以渐进更新）
             this._onDataLoadedCallbacks.forEach(cb => {
                 try { cb(); } catch (e) {}
             });
         }
 
-        this._allDataLoaded = true;
-        // 全部加载完成，再次触发回调
-        this._onDataLoadedCallbacks.forEach(cb => {
-            try { cb(); } catch (e) {}
-        });
-        this._onDataLoadedCallbacks = [];
+        // 标记核心数据已加载（足够标签和搜索使用）
+        this._coreDataLoaded = true;
+
+        // 使用 requestIdleCallback 在浏览器空闲时加载剩余数据
+        const loadRemaining = async () => {
+            const remaining = Object.keys(this.dataModules).filter(
+                id => !priorityProvinces.includes(id) && id !== 'cross'
+            );
+            for (let i = 0; i < remaining.length; i += 3) {
+                const batch = remaining.slice(i, i + 3);
+                await Promise.all(batch.map(id => this.loadProvinceData(id)));
+                this._onDataLoadedCallbacks.forEach(cb => {
+                    try { cb(); } catch (e) {}
+                });
+            }
+            this._allDataLoaded = true;
+            this._onDataLoadedCallbacks.forEach(cb => {
+                try { cb(); } catch (e) {}
+            });
+            this._onDataLoadedCallbacks = [];
+        };
+
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => loadRemaining(), { timeout: 5000 });
+        } else {
+            setTimeout(loadRemaining, 2000);
+        }
     },
 
     // 设置主题
@@ -593,48 +617,18 @@ const App = {
         return `<span class="section-icon">${title.icon}</span> ${title.text}`;
     },
 
-    // 渲染首页
-    async renderHome(container) {
+    // 渲染首页 - 非阻塞版本，先显示内容再加载建筑卡片
+    renderHome(container) {
         const allTopics = TopicsData.getAllTopics();
         const shuffledTopics = this.shuffleArray([...allTopics]).slice(0, 3);
 
-        // 收集需要加载的省份
-        const provincesToLoad = new Set();
-        shuffledTopics.forEach(topic => {
-            const story = topic.story;
-            const shuffledChapters = this.shuffleArray([...story.chapters]);
-            const featuredChapter = shuffledChapters[0];
-            featuredChapter.buildings.forEach(b => {
-                if (b && b.province) provincesToLoad.add(b.province);
-            });
-        });
-
-        // 按需加载需要的省份数据
-        if (provincesToLoad.size > 0) {
-            await this.loadProvinces([...provincesToLoad]);
-        }
-
+        // 先渲染基本结构（不等待数据加载）
         container.innerHTML = `
             <div class="container">
                 ${shuffledTopics.map((topic, index) => {
                     const story = topic.story;
                     const shuffledChapters = this.shuffleArray([...story.chapters]);
                     const featuredChapter = shuffledChapters[0];
-
-                    // 随机获取两个相关建筑
-                    const shuffledBuildings = this.shuffleArray([...featuredChapter.buildings]);
-                    const featuredBuildingInfos = shuffledBuildings.slice(0, 2);
-                    const featuredBuildings = featuredBuildingInfos.map(bInfo => {
-                        if (!bInfo) return null;
-                        const moduleName = this.dataModules[bInfo.province];
-                        if (moduleName && typeof window[moduleName] !== 'undefined') {
-                            const module = window[moduleName];
-                            if (module && typeof module.getBuildingByName === 'function') {
-                                return module.getBuildingByName(bInfo.name);
-                            }
-                        }
-                        return null;
-                    }).filter(b => b !== null);
 
                     return `
                     <div class="home-topic-section" style="margin-bottom: ${index < shuffledTopics.length - 1 ? '2.5rem' : '0'}; padding-bottom: ${index < shuffledTopics.length - 1 ? '2rem' : '0'}; border-bottom: ${index < shuffledTopics.length - 1 ? '1px solid var(--border-light)' : 'none'};" onclick="window.location.hash='topic/${topic.id}'">
@@ -657,21 +651,68 @@ const App = {
                                 </div>
                             </div>
 
-                            ${featuredBuildings.length > 0 ? `
-                                <div class="home-featured-buildings" style="display: flex; flex-direction: row; gap: 0.75rem; width: 420px; flex-shrink: 0;">
-                                    ${featuredBuildings.map(building => `
-                                        <div class="home-featured-building" style="cursor: pointer; flex: 1; min-width: 0;" onclick="event.stopPropagation(); App.navigateToBuilding('${building.name}')">
-                                            ${this.createBuildingCard(building)}
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
+                            <div class="home-featured-buildings" id="home-buildings-${index}" style="display: flex; flex-direction: row; gap: 0.75rem; width: 420px; flex-shrink: 0;">
+                                <div style="flex:1;min-width:0;padding:1rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">🏛️ 加载中...</div>
+                            </div>
                         </div>
                     </div>
                     `;
                 }).join('')}
             </div>
         `;
+
+        // 后台异步加载建筑数据并填充
+        this._loadHomeBuildings(shuffledTopics);
+    },
+
+    // 后台加载首页建筑卡片
+    async _loadHomeBuildings(shuffledTopics) {
+        // 收集需要加载的省份
+        const provincesToLoad = new Set();
+        shuffledTopics.forEach(topic => {
+            const story = topic.story;
+            const shuffledChapters = this.shuffleArray([...story.chapters]);
+            const featuredChapter = shuffledChapters[0];
+            featuredChapter.buildings.forEach(b => {
+                if (b && b.province) provincesToLoad.add(b.province);
+            });
+        });
+
+        // 按需加载需要的省份数据
+        if (provincesToLoad.size > 0) {
+            await this.loadProvinces([...provincesToLoad]);
+        }
+
+        // 填充建筑卡片
+        shuffledTopics.forEach((topic, index) => {
+            const story = topic.story;
+            const shuffledChapters = this.shuffleArray([...story.chapters]);
+            const featuredChapter = shuffledChapters[0];
+            const shuffledBuildings = this.shuffleArray([...featuredChapter.buildings]);
+            const featuredBuildingInfos = shuffledBuildings.slice(0, 2);
+            const featuredBuildings = featuredBuildingInfos.map(bInfo => {
+                if (!bInfo) return null;
+                const moduleName = this.dataModules[bInfo.province];
+                if (moduleName && typeof window[moduleName] !== 'undefined') {
+                    const module = window[moduleName];
+                    if (module && typeof module.getBuildingByName === 'function') {
+                        return module.getBuildingByName(bInfo.name);
+                    }
+                }
+                return null;
+            }).filter(b => b !== null);
+
+            const container = document.getElementById(`home-buildings-${index}`);
+            if (container && featuredBuildings.length > 0) {
+                container.innerHTML = featuredBuildings.map(building => `
+                    <div class="home-featured-building" style="cursor: pointer; flex: 1; min-width: 0;" onclick="event.stopPropagation(); App.navigateToBuilding('${building.name}')">
+                        ${this.createBuildingCard(building)}
+                    </div>
+                `).join('');
+            } else if (container) {
+                container.style.display = 'none';
+            }
+        });
     },
 
     // 渲染省份列表
