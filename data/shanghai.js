@@ -726,3 +726,6 @@ const ShanghaiData = {
             }));
     }
 };
+
+// 将模块挂载到window对象
+window.ShanghaiData = ShanghaiData;

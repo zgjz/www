@@ -2123,3 +2123,6 @@ const GuangdongData = {
             }));
     }
 };
+
+// 将模块挂载到window对象
+window.GuangdongData = GuangdongData;

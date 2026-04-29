@@ -1506,3 +1506,6 @@ const JilinData = {
             }));
     }
 };
+
+// 将模块挂载到window对象
+window.JilinData = JilinData;

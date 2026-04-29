@@ -4455,3 +4455,6 @@ const ZhejiangData = {
             .map(building => ({ ...building, province: this.provinceName, provinceId: this.provinceId }));
     }
 };
+
+// 将模块挂载到window对象
+window.ZhejiangData = ZhejiangData;

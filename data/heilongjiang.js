@@ -1043,3 +1043,6 @@ const HeilongjiangData = {
             }));
     }
 };
+
+// 将模块挂载到window对象
+window.HeilongjiangData = HeilongjiangData;

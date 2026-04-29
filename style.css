@@ -1,79 +1,79 @@
-/* CSS Variables - 中国古建筑风格配色 - 现代简约版 */
+/* CSS Variables - 中国古建筑风格配色 */
 :root {
     /* 主色调 - 朱红 */
     --color-primary: #B22222;
     --color-primary-light: #CD5C5C;
     --color-primary-dark: #8B1A1A;
-
+    
     /* 辅助色 - 赭石/黛蓝/墨绿 */
     --color-secondary: #8B4513;
     --color-secondary-light: #A0522D;
     --color-secondary-dark: #654321;
-
-    /* 背景色 - 更纯净的米色 */
-    --bg-primary: #FDFCFB;
-    --bg-secondary: #F8F6F3;
-    --bg-card: #FFFFFF;
-    --bg-hover: #F0EDE8;
-
-    /* 文字色 - 更清晰的墨色 */
-    --text-primary: #1A1A1A;
-    --text-secondary: #4A4A4A;
-    --text-muted: #7A7A7A;
-    --text-white: #FFFFFF;
-
-    /* 边框色 - 更柔和 */
-    --border-color: #E8E5E0;
-    --border-light: #F0EDE8;
-
+    
+    /* 背景色 - 宣纸米色 */
+    --bg-primary: #FAF8F3;
+    --bg-secondary: #F5F0E8;
+    --bg-card: #FDFCFA;
+    --bg-hover: #EDE8E0;
+    
+    /* 文字色 - 墨色 */
+    --text-primary: #2C2416;
+    --text-secondary: #5A4D3A;
+    --text-muted: #8B7D6B;
+    --text-white: #FAF8F3;
+    
+    /* 边框色 - 青砖灰 */
+    --border-color: #D4CFC4;
+    --border-light: #E8E4DC;
+    
     /* 强调色 - 朱红 */
     --accent-color: #B22222;
     --accent-hover: #8B1A1A;
-
-    /* 阴影 - 更柔和现代 */
+    
+    /* 阴影 - 现代简洁 */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
-    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
-
-    /* 圆角 - 更现代 */
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 12px 20px rgba(0, 0, 0, 0.12);
+    
+    /* 圆角 */
     --radius-xs: 4px;
     --radius-sm: 6px;
     --radius: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
     --radius-full: 9999px;
-
+    
     /* 其他 */
-    --header-height: 60px;
+    --header-height: 56px;
     --transition-fast: all 0.15s ease;
     --transition: all 0.2s ease;
     --transition-slow: all 0.3s ease;
 }
 
 [data-theme="dark"] {
-    /* 暗色模式 - 更舒适的深色 */
-    --bg-primary: #0D0D0D;
-    --bg-secondary: #141414;
-    --bg-card: #1A1A1A;
-    --bg-hover: #242424;
-
-    /* 文字色 */
-    --text-primary: #F0F0F0;
-    --text-secondary: #B0B0B0;
-    --text-muted: #666666;
-
-    /* 边框色 */
-    --border-color: #2A2A2A;
-    --border-light: #1F1F1F;
-
-    /* 阴影 */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
-    --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.7);
+    /* 暗色模式 - 更暗 */
+    --bg-primary: #050505;
+    --bg-secondary: #0C0C0C;
+    --bg-card: #141414;
+    --bg-hover: #1C1C1C;
+    
+    /* 文字色 - 降低亮度 */
+    --text-primary: #C0C0C0;
+    --text-secondary: #888888;
+    --text-muted: #555555;
+    
+    /* 边框色 - 更暗 */
+    --border-color: #1A1A1A;
+    --border-light: #0F0F0F;
+    
+    /* 阴影 - 更柔和 */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+    --shadow-hover: 0 12px 20px rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -90,7 +90,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    line-height: 1.6;
+    line-height: 1.5;
     transition: var(--transition);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -109,17 +109,17 @@ a:hover {
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0 20px;
 }
 
-/* Header - 更现代 */
+/* Header */
 .site-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: var(--header-height);
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.92);
     border-bottom: 1px solid var(--border-light);
     z-index: 1000;
     transition: var(--transition);
@@ -129,7 +129,7 @@ a:hover {
 }
 
 [data-theme="dark"] .site-header {
-    background: rgba(13, 13, 13, 0.95);
+    background: rgba(17, 24, 39, 0.92);
 }
 
 .site-header .container {
@@ -156,7 +156,7 @@ a:hover {
 }
 
 .site-title a::before {
-    content: '';
+    content: '🐲';
     font-size: 1.25rem;
 }
 
@@ -169,14 +169,14 @@ a:hover {
 .nav-menu {
     display: flex;
     list-style: none;
-    gap: 0.5rem;
+    gap: 0.375rem;
 }
 
 .nav-link {
     color: var(--text-secondary);
     font-weight: 500;
     font-size: 0.875rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.875rem;
     display: flex;
     align-items: center;
     gap: 0.375rem;
@@ -191,7 +191,7 @@ a:hover {
 
 .nav-link.active {
     color: var(--accent-color);
-    background: rgba(178, 34, 34, 0.08);
+    background: rgba(178, 34, 34, 0.1);
     font-weight: 600;
 }
 
@@ -226,7 +226,7 @@ a:hover {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 0.375rem;
     color: var(--text-muted);
     transition: var(--transition-fast);
     display: flex;
@@ -245,7 +245,7 @@ a:hover {
 /* Breadcrumb */
 .breadcrumb {
     margin-top: var(--header-height);
-    padding: 0.375rem 0;
+    padding: 0.5rem 0;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-light);
 }
@@ -294,18 +294,18 @@ a:hover {
 /* Main Content */
 .main-content {
     min-height: calc(100vh - var(--header-height) - 60px);
-    padding: 0.75rem 0;
+    padding: 1.25rem 0 0.25rem 0;
 }
 
 /* Section Titles */
 .section-title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.5rem;
     letter-spacing: -0.025em;
 }
 
@@ -313,103 +313,26 @@ a:hover {
     font-size: 1.25rem;
 }
 
-/* Building Grid - 更现代 */
+/* Building Grid - 简约现代版 */
 .building-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-/* 首页标签主题头部 - 简洁无框设计 */
-.home-tag-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    margin-bottom: 1rem;
-}
-
-.home-tag-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.75rem;
-    flex-shrink: 0;
-}
-
-.home-tag-info {
-    flex: 1;
-}
-
-.home-tag-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    letter-spacing: -0.01em;
-}
-
-.home-tag-desc {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    margin: 0.25rem 0 0 0;
-}
-
-.home-tag-more {
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    padding: 0.375rem 0.75rem;
-    border-radius: var(--radius);
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    opacity: 0.8;
-}
-
-.home-tag-more:hover {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.03);
-}
-
-/* 简洁版首页区域标题 */
-.home-section-header {
-    margin-bottom: 0.75rem;
-}
-
-.home-title-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-}
-
-.home-title-emoji {
-    font-size: 1.25rem;
-}
-
-.home-subtitle {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    margin: 0.25rem 0 0 0;
-}
-
-/* Building Card - 现代简约设计 */
+/* Building Card - 极简设计 */
 .building-card {
     background: var(--bg-card);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .building-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-hover);
-    border-color: var(--border-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .building-card-header {
@@ -421,43 +344,21 @@ a:hover {
     justify-content: space-between;
 }
 
-.building-card-header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-    flex: 1;
-}
-
-.building-province-icon {
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.building-district {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .building-card-era {
     font-size: 0.75rem;
     color: var(--text-muted);
     font-weight: 500;
 }
 
-.building-content {
+.building-card-body {
     padding: 0.75rem;
 }
 
-.building-title {
-    font-size: 1rem;
-    font-weight: 600;
+.building-card-title {
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.375rem;
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -465,44 +366,79 @@ a:hover {
     overflow: hidden;
 }
 
+.building-card-location {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.building-card-location::before {
+    content: '📍';
+    font-size: 0.75rem;
+}
+
+/* Cross Province Building Card (used in createBuildingCard) */
+.building-content {
+    padding: 0.75rem;
+}
+
+.building-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.375rem;
+    line-height: 1.4;
+}
+
 .building-meta {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    margin-bottom: 0.375rem;
 }
 
 .building-era {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: var(--text-muted);
-    font-weight: 500;
 }
 
 .building-type {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     color: var(--text-secondary);
     background: var(--bg-secondary);
-    padding: 0.125rem 0.5rem;
+    padding: 0.0625rem 0.25rem;
     border-radius: var(--radius-xs);
 }
 
 .building-desc {
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
     color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
+.building-district {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+}
+
+.building-card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
 .protection-badge {
-    font-size: 0.625rem;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.5625rem;
+    padding: 0.125rem 0.375rem;
     border-radius: var(--radius-full);
     font-weight: 600;
-    flex-shrink: 0;
 }
 
 .protection-badge.heritage {
@@ -514,7 +450,7 @@ a:hover {
 .protection-badge.national {
     background: rgba(178, 34, 34, 0.08);
     color: var(--accent-color);
-    border: 1px solid rgba(178, 34, 34, 0.15);
+    border: 1px solid rgba(178, 34, 34, 0.2);
 }
 
 .building-tags {
@@ -531,55 +467,53 @@ a:hover {
     border-radius: var(--radius-full);
     font-size: 0.625rem;
     font-weight: 500;
-    border: 1px solid transparent;
 }
 
 /* Province Grid */
 .province-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.875rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
 .province-card {
     background: var(--bg-card);
     border-radius: var(--radius);
-    padding: 1rem;
+    padding: 0.75rem;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     border: 1px solid var(--border-light);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    box-shadow: var(--shadow-sm);
+    gap: 0.625rem;
 }
 
 .province-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     border-color: var(--accent-color);
 }
 
 .province-icon {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     flex-shrink: 0;
 }
 
 .province-name {
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--text-primary);
 }
 
 .province-count {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: var(--text-muted);
 }
 
@@ -592,7 +526,7 @@ a:hover {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.375rem 0.875rem;
     background: var(--bg-secondary);
     border-radius: var(--radius-full);
     cursor: pointer;
@@ -615,207 +549,39 @@ a:hover {
 .district-count-badge {
     font-size: 0.75rem;
     color: var(--accent-color);
-    background: rgba(178, 34, 34, 0.1);
+    background: rgba(178, 34, 34, 0.12);
     padding: 0.125rem 0.5rem;
     border-radius: var(--radius-full);
     font-weight: 600;
 }
 
-/* Era Section - 年代分组 */
-.era-section {
-    margin-bottom: 2.5rem;
+/* Building Grid Compact Mode */
+.building-grid.compact {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem;
 }
 
-.era-title-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    border: 1px solid var(--border-light);
-    border-left: 4px solid;
-    box-shadow: var(--shadow-sm);
-}
-
-.era-name {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-}
-
-.era-count {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-    background: var(--bg-secondary);
-    padding: 0.25rem 0.625rem;
-    border-radius: var(--radius-full);
-    font-weight: 500;
-}
-
-/* Building Grid - 三种大小 */
-/* 小卡片 - 首页、标签页、跨省页、搜索页 */
-.building-grid-small {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.5rem;
-}
-
-.building-card-small .building-card-header {
-    padding: 0.375rem 0.625rem;
-}
-
-.building-card-small .building-province-icon {
+.building-grid.compact .building-card-title {
     font-size: 0.875rem;
 }
 
-.building-card-small .building-district {
-    font-size: 0.6875rem;
-}
-
-.building-card-small .building-content {
-    padding: 0.625rem;
-}
-
-.building-card-small .building-title {
-    font-size: 0.875rem;
-    margin-bottom: 0.375rem;
-}
-
-.building-card-small .building-meta {
-    margin-bottom: 0.375rem;
-}
-
-.building-card-small .building-era,
-.building-card-small .building-type {
-    font-size: 0.625rem;
-}
-
-.building-card-small .building-desc {
-    font-size: 0.75rem;
-    margin-bottom: 0.5rem;
-    -webkit-line-clamp: 2;
-}
-
-.building-card-small .building-tags {
-    gap: 0.25rem;
-}
-
-.building-card-small .building-tag {
-    font-size: 0.625rem;
-    padding: 0.125rem 0.375rem;
-}
-
-.building-card-small .protection-badge {
-    font-size: 0.5625rem;
-    padding: 0.125rem 0.375rem;
-}
-
-/* 中等卡片 - 省份页面，显示5个 */
-.building-grid-medium {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.625rem;
-}
-
-.building-card-medium .building-card-header {
-    padding: 0.4375rem 0.75rem;
-}
-
-.building-card-medium .building-content {
-    padding: 0.875rem;
-}
-
-.building-card-medium .building-title {
-    font-size: 0.9375rem;
-    margin-bottom: 0.4375rem;
-}
-
-.building-card-medium .building-meta {
-    margin-bottom: 0.4375rem;
-}
-
-.building-card-medium .building-desc {
-    font-size: 0.8125rem;
-    margin-bottom: 0.625rem;
-}
-
-.building-card-medium .building-tag {
-    font-size: 0.6875rem;
-    padding: 0.1875rem 0.4375rem;
-}
-
-/* 大卡片 - 区县页面，显示4个 */
-.building-grid-large {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 0.75rem;
-}
-
-.building-card-large .building-card-header {
-    padding: 0.5rem 0.875rem;
-}
-
-.building-card-large .building-province-icon {
-    font-size: 1rem;
-}
-
-.building-card-large .building-district {
+.building-grid.compact .building-card-era,
+.building-grid.compact .building-card-location {
     font-size: 0.75rem;
 }
 
-.building-card-large .building-content {
-    padding: 1rem;
-}
-
-.building-card-large .building-title {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.building-card-large .building-meta {
-    margin-bottom: 0.5rem;
-    gap: 0.75rem;
-}
-
-.building-card-large .building-era {
-    font-size: 0.75rem;
-}
-
-.building-card-large .building-type {
-    font-size: 0.6875rem;
-    padding: 0.125rem 0.5rem;
-}
-
-.building-card-large .building-desc {
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-    -webkit-line-clamp: 3;
-}
-
-.building-card-large .building-tags {
-    gap: 0.375rem;
-}
-
-.building-card-large .building-tag {
-    font-size: 0.6875rem;
+.building-grid.compact .building-card-header {
     padding: 0.25rem 0.5rem;
 }
 
-.building-card-large .protection-badge {
-    font-size: 0.625rem;
-    padding: 0.1875rem 0.5rem;
-}
-
-/* Building Grid Compact Mode (兼容旧代码) */
-.building-grid.compact {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 0.875rem;
+.building-grid.compact .building-card-body {
+    padding: 0.5rem;
 }
 
 /* Building Detail */
 .building-detail {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow: hidden;
     margin-bottom: 1.5rem;
@@ -823,47 +589,44 @@ a:hover {
 }
 
 .building-detail-header {
-    padding: 1.5rem;
+    padding: 1.25rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+    gap: 0.875rem;
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-light);
 }
 
 .building-detail-icon {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     flex-shrink: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
 }
 
 .building-detail-title {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.125rem;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
-    letter-spacing: -0.01em;
+    margin-bottom: 0.375rem;
 }
 
 .building-detail-location {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    gap: 0.375rem;
 }
 
 .location-icon {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
 }
 
 .map-links-inline {
@@ -876,8 +639,8 @@ a:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: var(--radius-full);
     font-size: 0.75rem;
     text-decoration: none;
@@ -905,61 +668,54 @@ a:hover {
 }
 
 .building-detail-sections {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 
 .building-detail-section {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 1.25rem;
 }
 
 .building-detail-section:last-child {
     margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
 }
 
 .building-detail-section h3 {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.875rem;
+    margin-bottom: 0.625rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
 }
 
 .building-detail-section p {
-    font-size: 0.9375rem;
-    line-height: 1.8;
+    font-size: 0.8125rem;
+    line-height: 1.6;
     color: var(--text-secondary);
 }
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.625rem;
 }
 
 .info-item {
     background: var(--bg-secondary);
-    padding: 0.875rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light);
+    padding: 0.625rem;
+    border-radius: var(--radius-sm);
 }
 
 .info-label {
     display: block;
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     color: var(--text-muted);
-    margin-bottom: 0.25rem;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
+    margin-bottom: 0.125rem;
 }
 
 .info-value {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -973,10 +729,10 @@ a:hover {
 .building-detail-tag {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.875rem;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
     border-radius: var(--radius-full);
-    font-size: 0.8125rem;
+    font-size: 0.6875rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -984,67 +740,32 @@ a:hover {
 }
 
 .building-detail-tag:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Sections Grid */
-.sections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.75rem;
-}
-
-.section-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    padding: 1rem;
-    transition: all 0.2s ease;
-}
-
-.section-card:hover {
-    background: var(--bg-hover);
-    border-color: var(--accent-color);
-}
-
-.section-name {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
-}
-
-.section-province {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    transform: translateY(-1px);
 }
 
 /* Tags Page - Modern */
 .tags-cloud-modern {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.625rem;
+    gap: 0.5rem;
     padding: 1rem 0;
 }
 
 .tag-modern {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.875rem;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
     border-radius: var(--radius-full);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     font-weight: 500;
     white-space: nowrap;
-    font-size: 0.8125rem;
-    border: 1px solid transparent;
+    font-size: 0.75rem;
 }
 
 .tag-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
 }
 
 .tag-modern-icon {
@@ -1056,9 +777,9 @@ a:hover {
 }
 
 .tag-modern-count {
-    padding: 0.125rem 0.5rem;
+    padding: 0.0625rem 0.375rem;
     border-radius: var(--radius-full);
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     font-weight: 600;
 }
 
@@ -1069,19 +790,18 @@ a:hover {
 
 .search-page-input-wrapper {
     position: relative;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
 }
 
 .search-page-input {
     width: 100%;
-    padding: 0.875rem 2.75rem 0.875rem 1.25rem;
-    font-size: 0.9375rem;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.875rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     background-color: var(--bg-card);
     color: var(--text-primary);
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
 }
 
 .search-page-input:focus {
@@ -1092,7 +812,7 @@ a:hover {
 
 .search-page-clear {
     position: absolute;
-    right: 1rem;
+    right: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -1100,22 +820,22 @@ a:hover {
     color: var(--text-muted);
     cursor: pointer;
     padding: 0.25rem;
-    font-size: 1.25rem;
+    font-size: 1rem;
     line-height: 1;
 }
 
 .search-page-hint {
     text-align: center;
-    padding: 2rem;
+    padding: 1.5rem;
     color: var(--text-muted);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
 }
 
 /* Search Results */
 .search-results-count {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
     color: var(--text-secondary);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -1129,16 +849,15 @@ a:hover {
 
 .search-tips {
     margin-top: 1.5rem;
-    padding: 1.25rem;
+    padding: 1rem;
     background: var(--bg-secondary);
     border-radius: var(--radius);
     text-align: left;
-    border: 1px solid var(--border-light);
 }
 
 .search-tips p {
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     color: var(--text-primary);
 }
 
@@ -1146,11 +865,11 @@ a:hover {
     margin: 0;
     padding-left: 1.25rem;
     color: var(--text-secondary);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
 }
 
 .search-tips li {
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.25rem;
 }
 
 /* 搜索结果卡片 */
@@ -1161,35 +880,66 @@ a:hover {
 .match-reasons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.375rem;
-    margin-bottom: 0.625rem;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .match-reason {
-    font-size: 0.625rem;
-    padding: 0.125rem 0.5rem;
+    font-size: 0.5625rem;
+    padding: 0.0625rem 0.375rem;
     background: var(--accent-color);
     color: white;
     border-radius: var(--radius-full);
     font-weight: 500;
 }
 
+/* 快速导航 */
+.detail-quick-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.quick-nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.quick-nav-item:hover {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
 /* 详情段落 */
 .detail-paragraph {
     text-align: justify;
-    line-height: 1.9;
-    color: var(--text-secondary);
+    line-height: 1.8;
 }
 
 /* 相关推荐 */
 .related-buildings-section {
-    margin-top: 2.5rem;
+    margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--border-light);
 }
 
 .related-hint {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--text-muted);
     margin-bottom: 1rem;
     margin-top: -0.75rem;
@@ -1197,13 +947,12 @@ a:hover {
 
 /* Footer */
 .site-footer {
-    padding: 1.5rem 0;
+    padding: 0.5rem 0;
     text-align: center;
     color: var(--text-muted);
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     border-top: 1px solid var(--border-light);
-    margin-top: 2rem;
-    background: var(--bg-secondary);
+    margin-top: 0.5rem;
 }
 
 /* Responsive */
@@ -1220,102 +969,21 @@ a:hover {
         border-bottom: 1px solid var(--border-color);
         box-shadow: var(--shadow-lg);
     }
-
+    
     .nav-menu.active {
         display: flex;
     }
-
+    
     .nav-toggle {
         display: flex;
     }
-
+    
     .building-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 0.875rem;
-    }
-
-    .building-grid-small {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 0.625rem;
     }
-
-    .building-grid-medium {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 0.75rem;
-    }
-
-    .building-grid-large {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 0.875rem;
-    }
-
+    
     .province-grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
-
-    .home-tag-header {
-        padding: 1rem;
-        gap: 0.75rem;
-    }
-
-    .home-tag-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 1.375rem;
-    }
-
-    .home-tag-title {
-        font-size: 1.125rem;
-    }
-
-    .home-tag-desc {
-        font-size: 0.875rem;
-    }
-
-    .home-tag-more {
-        font-size: 0.875rem;
-        padding: 0.375rem 0.75rem;
-    }
-
-    .building-detail-header {
-        padding: 1.25rem;
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .building-detail-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.5rem;
-    }
-
-    .building-detail-title {
-        font-size: 1.125rem;
-    }
-
-    .info-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .building-grid,
-    .building-grid-small,
-    .building-grid-medium,
-    .building-grid-large {
-        grid-template-columns: 1fr;
-    }
-
-    .container {
-        padding: 0 16px;
-    }
-
-    .building-detail-sections {
-        padding: 1rem;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
 }
 
@@ -1327,7 +995,6 @@ a:hover {
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
     margin: 2rem 0;
-    border: 1px solid var(--border-light);
 }
 
 .empty-state-icon {
@@ -1383,8 +1050,6 @@ a:hover {
     align-items: center;
     gap: 1rem;
     box-shadow: var(--shadow-sm);
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
-    border: 1px solid var(--border-light);
 }
 
 .province-header-icon,
@@ -1405,7 +1070,7 @@ a:hover {
 .province-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.875rem;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
 }
 
@@ -1413,29 +1078,28 @@ a:hover {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius);
-    padding: 1.25rem 1rem;
+    padding: 1rem;
     text-align: center;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     border-color: var(--accent-color);
 }
 
 .stat-value {
-    font-size: 1.875rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: var(--accent-color);
     line-height: 1.2;
 }
 
 .stat-label {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 0.375rem;
+    margin-top: 0.25rem;
 }
 
 /* 批次分布 */
@@ -1443,33 +1107,32 @@ a:hover {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius);
-    padding: 1.25rem;
+    padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-sm);
 }
 
 .distribution-title {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .batch-bars {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.5rem;
 }
 
 .batch-bar-item {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
+    gap: 0.75rem;
 }
 
 .batch-bar-label {
     width: 60px;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     text-align: right;
     flex-shrink: 0;
@@ -1477,7 +1140,7 @@ a:hover {
 
 .batch-bar-track {
     flex: 1;
-    height: 10px;
+    height: 8px;
     background: var(--bg-secondary);
     border-radius: var(--radius-full);
     overflow: hidden;
@@ -1487,12 +1150,12 @@ a:hover {
     height: 100%;
     border-radius: var(--radius-full);
     transition: width 0.5s ease;
-    opacity: 0.85;
+    opacity: 0.8;
 }
 
 .batch-bar-value {
-    width: 28px;
-    font-size: 0.8125rem;
+    width: 24px;
+    font-size: 0.75rem;
     color: var(--text-primary);
     font-weight: 600;
     text-align: left;
@@ -1500,40 +1163,5 @@ a:hover {
 
 /* Section spacing */
 section {
-    margin-bottom: 2rem;
-}
-
-/* 子遗址列表样式 */
-.subsites-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-}
-
-.subsite-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    transition: all 0.2s ease;
-}
-
-.subsite-item:hover {
-    background: var(--bg-hover);
-    border-color: var(--accent-color);
-    transform: translateX(4px);
-}
-
-.subsite-icon {
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-.subsite-name {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: var(--text-primary);
+    margin-bottom: 1.5rem;
 }

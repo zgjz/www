@@ -4436,3 +4436,6 @@ const HebeiData = {
             }));
     }
 };
+
+// 将模块挂载到window对象
+window.HebeiData = HebeiData;

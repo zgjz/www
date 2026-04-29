@@ -3893,3 +3893,6 @@ const JiangsuData = {
             }));
     }
 };
+
+// 将模块挂载到window对象
+window.JiangsuData = JiangsuData;
