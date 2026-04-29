@@ -221,7 +221,6 @@ a:hover {
     gap: 0.25rem;
 }
 
-.search-toggle,
 .theme-toggle {
     background: none;
     border: none;
@@ -236,7 +235,6 @@ a:hover {
     font-size: 1rem;
 }
 
-.search-toggle:hover,
 .theme-toggle:hover {
     color: var(--text-primary);
     background-color: var(--bg-hover);
@@ -294,7 +292,7 @@ a:hover {
 /* Main Content */
 .main-content {
     min-height: calc(100vh - var(--header-height) - 60px);
-    padding: 1.25rem 0 0.25rem 0;
+    padding: 1.25rem 0 0;
 }
 
 /* Section Titles */
@@ -342,41 +340,6 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-.building-card-era {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
-.building-card-body {
-    padding: 0.75rem;
-}
-
-.building-card-title {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 0.375rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.building-card-location {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.building-card-location::before {
-    content: '📍';
-    font-size: 0.75rem;
 }
 
 /* Cross Province Building Card (used in createBuildingCard) */
@@ -559,23 +522,6 @@ a:hover {
 .building-grid.compact {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 1rem;
-}
-
-.building-grid.compact .building-card-title {
-    font-size: 0.875rem;
-}
-
-.building-grid.compact .building-card-era,
-.building-grid.compact .building-card-location {
-    font-size: 0.75rem;
-}
-
-.building-grid.compact .building-card-header {
-    padding: 0.25rem 0.5rem;
-}
-
-.building-grid.compact .building-card-body {
-    padding: 0.5rem;
 }
 
 /* Building Detail */
@@ -893,38 +839,6 @@ a:hover {
     font-weight: 500;
 }
 
-/* 快速导航 */
-.detail-quick-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 1rem 1.25rem;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-light);
-}
-
-.quick-nav-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.375rem 0.75rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: all 0.15s ease;
-    white-space: nowrap;
-}
-
-.quick-nav-item:hover {
-    background: var(--accent-color);
-    color: white;
-    border-color: var(--accent-color);
-    transform: translateY(-1px);
-}
-
 /* 详情段落 */
 .detail-paragraph {
     text-align: justify;
@@ -1078,7 +992,7 @@ a:hover {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius);
-    padding: 1rem;
+    padding: 1rem 0.5rem;
     text-align: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -1087,6 +1001,12 @@ a:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     border-color: var(--accent-color);
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.375rem;
+    line-height: 1;
 }
 
 .stat-value {
@@ -1099,7 +1019,7 @@ a:hover {
 .stat-label {
     font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 0.25rem;
+    margin-top: 0.375rem;
 }
 
 /* 批次分布 */
@@ -1164,4 +1084,263 @@ a:hover {
 /* Section spacing */
 section {
     margin-bottom: 1.5rem;
+}
+
+/* District Grid Cards - 省份页区县网格卡片 */
+.district-grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.875rem;
+}
+
+.district-grid-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border-top: 3px solid;
+}
+
+.district-grid-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-color);
+}
+
+.district-grid-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.district-grid-card-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.district-grid-heritage {
+    font-size: 1rem;
+}
+
+.district-grid-card-count {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.375rem;
+}
+
+.district-grid-card-eras {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.375rem;
+    line-height: 1.4;
+}
+
+.district-grid-card-example {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.district-grid-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.district-grid-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--radius-full);
+    font-size: 0.625rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Topics Page */
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.topic-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    border-left: 4px solid;
+}
+
+.topic-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-color);
+}
+
+.topic-card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.topic-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.topic-card-title {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.topic-card-subtitle {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.375rem;
+}
+
+.topic-card-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Topic Detail Page */
+.topic-detail-header {
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.topic-detail-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.topic-detail-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.375rem 0;
+}
+
+.topic-detail-subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.topic-intro {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.topic-intro p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 0.875rem;
+}
+
+.topic-intro p:last-child {
+    margin-bottom: 0;
+}
+
+.topic-chapters {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.topic-chapter {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.topic-chapter:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.topic-chapter-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.875rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.topic-chapter-icon {
+    font-size: 1.25rem;
+}
+
+.topic-chapter-content p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.topic-chapter-content p:last-child {
+    margin-bottom: 0;
+}
+
+.topic-chapter-buildings {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.topic-buildings-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem 0;
+}
+
+.topic-all-buildings {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--border-light);
 }

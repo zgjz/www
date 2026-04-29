@@ -83,6 +83,7 @@ const DataLoader = {
     loadedModules: new Set(),
     _allBuildingsCache: null,
     _allTagsCache: null,
+    _tagBuildingsCache: {},
 
     // 加载省份数据
     async loadProvinceData(provinceId) {
@@ -114,6 +115,7 @@ const DataLoader = {
     clearCache() {
         this._allBuildingsCache = null;
         this._allTagsCache = null;
+        this._tagBuildingsCache = {};
     },
 
     // 获取所有建筑数据（带缓存）
@@ -183,12 +185,19 @@ const DataLoader = {
         });
     },
 
-    // 根据标签获取建筑
+    // 根据标签获取建筑（带缓存）
     getBuildingsByTag(tag) {
+        if (this._tagBuildingsCache[tag]) {
+            return this._tagBuildingsCache[tag];
+        }
+
         const allBuildings = this.getAllBuildings();
-        return allBuildings.filter(building => 
+        const result = allBuildings.filter(building =>
             building.tags.some(t => t === tag)
         );
+
+        this._tagBuildingsCache[tag] = result;
+        return result;
     },
 
     // 获取所有标签（带缓存）
