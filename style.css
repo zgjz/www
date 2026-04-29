@@ -1344,3 +1344,43 @@ section {
     padding-top: 1.5rem;
     border-top: 2px solid var(--border-light);
 }
+
+/* Home Page Responsive Layout */
+.home-chapter-layout {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.home-chapter-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.home-featured-buildings {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+    width: 420px;
+    flex-shrink: 0;
+}
+
+.home-featured-building {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .home-chapter-layout {
+        flex-direction: column;
+    }
+
+    .home-featured-buildings {
+        width: 100%;
+    }
+
+    .home-featured-building {
+        flex: 1;
+        min-width: 0;
+    }
+}

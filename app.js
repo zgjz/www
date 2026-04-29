@@ -512,50 +512,57 @@ const App = {
 
         container.innerHTML = `
             <div class="container">
-                ${shuffledTopics.map(topic => {
+                ${shuffledTopics.map((topic, index) => {
                     const story = topic.story;
                     const shuffledChapters = this.shuffleArray([...story.chapters]);
                     const featuredChapter = shuffledChapters[0];
 
-                    // 获取该章节相关的建筑数据
-                    const chapterBuildings = featuredChapter.buildings.map(b => {
-                        const moduleName = this.dataModules[b.province];
+                    // 随机获取两个相关建筑
+                    const shuffledBuildings = this.shuffleArray([...featuredChapter.buildings]);
+                    const featuredBuildingInfos = shuffledBuildings.slice(0, 2);
+                    const featuredBuildings = featuredBuildingInfos.map(bInfo => {
+                        if (!bInfo) return null;
+                        const moduleName = this.dataModules[bInfo.province];
                         if (moduleName && typeof window[moduleName] !== 'undefined') {
                             const module = window[moduleName];
                             if (module && typeof module.getBuildingByName === 'function') {
-                                const building = module.getBuildingByName(b.name);
-                                if (building) return building;
+                                return module.getBuildingByName(bInfo.name);
                             }
                         }
                         return null;
                     }).filter(b => b !== null);
 
                     return `
-                    <div class="home-topic-section" style="margin-bottom: 2rem;">
-                        <div class="home-topic-header" style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; padding-bottom: 0.625rem; border-bottom: 2px solid ${topic.color}30;">
+                    <div class="home-topic-section" style="margin-bottom: ${index < shuffledTopics.length - 1 ? '2.5rem' : '0'}; padding-bottom: ${index < shuffledTopics.length - 1 ? '2rem' : '0'}; border-bottom: ${index < shuffledTopics.length - 1 ? '1px solid var(--border-light)' : 'none'};" onclick="window.location.hash='topic/${topic.id}'">
+                        <div class="home-topic-header" style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; padding-bottom: 0.625rem; border-bottom: 2px solid ${topic.color}30; cursor: pointer;">
                             <span style="font-size: 1.5rem;">${topic.icon}</span>
                             <div>
                                 <div style="font-size: 1.0625rem; font-weight: 700; color: var(--text-primary);">${topic.title}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">${topic.subtitle}</div>
                             </div>
-                            <a href="#topic/${topic.id}" style="margin-left: auto; font-size: 0.8125rem; color: ${topic.color}; text-decoration: none; font-weight: 500;">查看全部 ›</a>
                         </div>
 
-                        <div class="home-chapter-card" style="background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.875rem; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;" onclick="window.location.hash='topic/${topic.id}'">
-                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.375rem;">
-                                <span>${featuredChapter.icon}</span>
-                                ${featuredChapter.title}
-                            </h3>
-                            <div style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">
-                                ${featuredChapter.content.split('\n\n').slice(0, 2).map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
+                        <div class="home-chapter-layout" style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div class="home-chapter-content" style="flex: 1; min-width: 0;">
+                                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.375rem;">
+                                    <span>${featuredChapter.icon}</span>
+                                    ${featuredChapter.title}
+                                </h3>
+                                <div style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">
+                                    ${featuredChapter.content.split('\n\n').slice(0, 2).map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
+                                </div>
                             </div>
-                        </div>
 
-                        ${chapterBuildings.length > 0 ? `
-                            <div class="building-grid compact">
-                                ${chapterBuildings.slice(0, 4).map(building => this.createBuildingCard(building)).join('')}
-                            </div>
-                        ` : ''}
+                            ${featuredBuildings.length > 0 ? `
+                                <div class="home-featured-buildings" style="display: flex; flex-direction: row; gap: 0.75rem; width: 420px; flex-shrink: 0;">
+                                    ${featuredBuildings.map(building => `
+                                        <div class="home-featured-building" style="cursor: pointer; flex: 1; min-width: 0;" onclick="event.stopPropagation(); App.navigateToBuilding('${building.name}')">
+                                            ${this.createBuildingCard(building)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                     `;
                 }).join('')}
