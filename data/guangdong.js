@@ -2054,75 +2054,11 @@ const GuangdongData = {
         }
     ],
 
-    // 方法同tianjin.js
-    getAllBuildings() {
-        return this.buildings.map(building => ({
-            ...building,
-            province: this.provinceName,
-            provinceId: this.provinceId
-        }));
-    },
-
-    getBuildingsByDistrict(districtId) {
-        return this.buildings
-            .filter(b => b.district === districtId)
-            .map(building => ({
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            }));
-    },
-
-    getBuildingByName(name) {
-        let building = this.buildings.find(b => b.name === name);
-        if (!building) {
-            building = this.buildings.find(b => {
-                const fullPath = `${this.provinceName}${b.districtName}${b.name}`;
-                return fullPath === name;
-            });
-        }
-        if (building) {
-            return {
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            };
-        }
-        return null;
-    },
-
-    getAllDistricts() {
-        return Object.entries(this.districts).map(([id, data]) => ({
-            id,
-            ...data
-        }));
-    },
-
-    getBuildingsByTag(tag) {
-        return this.buildings
-            .filter(b => b.tags.includes(tag))
-            .map(building => ({
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            }));
-    },
-
-    searchBuildings(query) {
-        const lowerQuery = query.toLowerCase();
-        return this.buildings
-            .filter(b =>
-                b.name.toLowerCase().includes(lowerQuery) ||
-                b.location.toLowerCase().includes(lowerQuery) ||
-                b.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-            )
-            .map(building => ({
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            }));
-    }
+    // 使用基础模块的方法，通过 Object.assign 合并
 };
+
+// 合并基础方法到 GuangdongData
+Object.assign(GuangdongData, ProvinceDataBase);
 
 // 将模块挂载到window对象
 window.GuangdongData = GuangdongData;

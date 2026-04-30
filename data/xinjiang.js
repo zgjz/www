@@ -2066,71 +2066,11 @@ const XinjiangData = {
         }));
     },
 
-    // 按地州市获取建筑
-    getBuildingsByDistrict(districtId) {
-        return this.buildings
-            .filter(b => b.district === districtId)
-            .map(building => ({
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            }));
-    },
-
-    // 按名称获取建筑
-    getBuildingByName(name) {
-        let building = this.buildings.find(b => b.name === name);
-        if (!building) {
-            building = this.buildings.find(b => {
-                const fullPath = `${this.provinceName}${b.districtName}${b.name}`;
-                return fullPath === name;
-            });
-        }
-        if (building) {
-            return {
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            };
-        }
-        return null;
-    },
-
-    // 获取所有地州市
-    getAllDistricts() {
-        return Object.entries(this.districts).map(([id, data]) => ({
-            id,
-            ...data
-        }));
-    },
-
-    // 按标签获取建筑
-    getBuildingsByTag(tag) {
-        return this.buildings
-            .filter(b => b.tags.includes(tag))
-            .map(building => ({
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            }));
-    },
-
-    // 搜索建筑
-    searchBuildings(query) {
-        const lowerQuery = query.toLowerCase();
-        return this.buildings
-            .filter(b =>
-                b.name.toLowerCase().includes(lowerQuery) ||
-                b.location.toLowerCase().includes(lowerQuery) ||
-                b.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
-            )
-            .map(building => ({
-                ...building,
-                province: this.provinceName,
-                provinceId: this.provinceId
-            }));
-    }
+    // 使用基础模块的方法，通过 Object.assign 合并
 };
+
+// 合并基础方法到 XinjiangData
+Object.assign(XinjiangData, ProvinceDataBase);
 
 // 将模块挂载到window对象
 window.XinjiangData = XinjiangData;

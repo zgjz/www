@@ -35,7 +35,7 @@ const ProvincesData = {
         { id: 'xinjiang', name: '新疆维吾尔自治区', count: 133 },
         { id: 'taiwan', name: '台湾省', count: 108 },
         { id: 'hongkong', name: '香港特别行政区', count: 151 },
-        { id: 'macao', name: '澳门特别行政区', count: 140 }
+        { id: 'macau', name: '澳门特别行政区', count: 140 }
     ],
 
     // 跨省文物保护单位列表
