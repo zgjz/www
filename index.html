@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中国建筑 zgjz.org 藻纹蚀梵本，斗八陷佛瞳</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🐲%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://ditu.amap.com" crossorigin>
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+    <link rel="dns-prefetch" href="https://ditu.amap.com">
+    <link rel="dns-prefetch" href="https://www.google.com">
+    <link rel="preload" as="style" href="style.css?v=4">
     <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
@@ -50,7 +55,12 @@
     </nav>
 
     <main class="main-content" id="mainContent">
-        <!-- 动态内容将在这里渲染 -->
+        <div class="container" id="initialLoading">
+            <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🏛️</div>
+                <div>正在加载精彩内容...</div>
+            </div>
+        </div>
     </main>
 
     <footer class="site-footer">
@@ -59,10 +69,10 @@
         </div>
     </footer>
 
-    <script src="data/provinces.js?v=5"></script>
-    <script src="data/base-data.js?v=5"></script>
-    <script src="story/index.js?v=6"></script>
-    <script src="route/index.js?v=6"></script>
-    <script src="app.js?v=9"></script>
+    <script defer src="data/provinces.js?v=5"></script>
+    <script defer src="data/base-data.js?v=5"></script>
+    <script defer src="story/index.js?v=6"></script>
+    <script defer src="route/index.js?v=6"></script>
+    <script defer src="app.js?v=9"></script>
 </body>
 </html>

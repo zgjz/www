@@ -13,10 +13,11 @@ const App = {
 
     // 缓存机制
     _cache: {
-        buildingCards: new Map(), // 建筑卡片HTML缓存
-        tagStyles: new Map(), // 标签样式缓存
-        protectionBadges: new Map(), // 保护级别徽章缓存
-        truncatedTexts: new Map() // 截断文本缓存
+        buildingCards: new Map(),
+        tagStyles: new Map(),
+        protectionBadges: new Map(),
+        truncatedTexts: new Map(),
+        buildingByName: new Map()
     },
 
     // 缓存大小限制
@@ -228,8 +229,15 @@ const App = {
         this.setupEventListeners();
         this.setupNavigation();
         this.render();
-        // 首页显示后，后台静默加载所有省份数据
-        this._preloadAllData();
+        this._scheduleBackgroundPreload();
+    },
+
+    _scheduleBackgroundPreload() {
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => this._preloadAllData(), { timeout: 1500 });
+        } else {
+            setTimeout(() => this._preloadAllData(), 100);
+        }
     },
 
     // 数据加载完成回调
@@ -338,7 +346,7 @@ const App = {
                     window.location.hash = hashUrl;
                 }
             }
-        }, true);
+        });
     },
 
     // 设置导航
@@ -477,40 +485,69 @@ const App = {
         await Promise.all(promises);
     },
 
-    // 根据完整路径查找建筑
-    findBuildingByFullPath(fullPath) {
-        // 1. 先尝试从省份模块查找
-        for (const [provinceId, moduleName] of Object.entries(this.dataModules)) {
-            if (typeof window[moduleName] !== 'undefined') {
-                const module = window[moduleName];
-                if (module && typeof module.getBuildingByName === 'function') {
-                    const building = module.getBuildingByName(fullPath);
-                    if (building) return building;
-                }
-            }
+    _resolveBuildingRef(buildingRef, extraModule) {
+        if (!buildingRef) return null;
+        if (buildingRef.embedded) return buildingRef.embedded;
+
+        if (extraModule && typeof extraModule.getBuildingByName === 'function') {
+            const b = extraModule.getBuildingByName(buildingRef.name);
+            if (b) return b;
         }
 
-        // 2. 尝试从故事模块的内嵌数据中查找
-        const allStories = StoryManager.getAllStories();
-        for (const storyMeta of allStories) {
-            const module = window[storyMeta.moduleName];
+        const moduleName = this.dataModules[buildingRef.province];
+        if (moduleName && typeof window[moduleName] !== 'undefined') {
+            const module = window[moduleName];
             if (module && typeof module.getBuildingByName === 'function') {
-                const building = module.getBuildingByName(fullPath);
-                if (building) return building;
-            }
-        }
-
-        // 3. 尝试从路线模块的内嵌数据中查找
-        const allRoutes = RouteManager.getAllRoutes();
-        for (const routeMeta of allRoutes) {
-            const module = window[routeMeta.moduleName];
-            if (module && typeof module.getBuildingByName === 'function') {
-                const building = module.getBuildingByName(fullPath);
-                if (building) return building;
+                return module.getBuildingByName(buildingRef.name);
             }
         }
 
         return null;
+    },
+
+    // 根据完整路径查找建筑（带名称索引缓存）
+    findBuildingByFullPath(fullPath) {
+        if (this._cache.buildingByName.has(fullPath)) {
+            return this._cache.buildingByName.get(fullPath);
+        }
+
+        let building = null;
+
+        for (const moduleName of Object.values(this.dataModules)) {
+            if (typeof window[moduleName] !== 'undefined') {
+                const module = window[moduleName];
+                if (module && typeof module.getBuildingByName === 'function') {
+                    building = module.getBuildingByName(fullPath);
+                    if (building) break;
+                }
+            }
+        }
+
+        if (!building) {
+            for (const storyMeta of StoryManager.getAllStories()) {
+                const module = window[storyMeta.moduleName];
+                if (module && typeof module.getBuildingByName === 'function') {
+                    building = module.getBuildingByName(fullPath);
+                    if (building) break;
+                }
+            }
+        }
+
+        if (!building) {
+            for (const routeMeta of RouteManager.getAllRoutes()) {
+                const module = window[routeMeta.moduleName];
+                if (module && typeof module.getBuildingByName === 'function') {
+                    building = module.getBuildingByName(fullPath);
+                    if (building) break;
+                }
+            }
+        }
+
+        if (building) {
+            this._cache.buildingByName.set(fullPath, building);
+        }
+
+        return building;
     },
 
     // 获取省份样式
@@ -768,23 +805,21 @@ const App = {
             </div>
         `;
 
-        // 获取所有故事和路线元数据
         const allTopicMetas = StoryManager.getAllStories();
         const allRouteMetas = RouteManager.getAllRoutes();
 
-        // 随机选择2个不同的故事
-        const shuffledTopicMetas = this.shuffleArray([...allTopicMetas]);
-        const selectedTopicMetas = shuffledTopicMetas.slice(0, 2);
+        const selectedTopicMetas = this.shuffleArray([...allTopicMetas]).slice(0, 2);
+        const selectedRouteMetas = this.shuffleArray([...allRouteMetas]).slice(0, 2);
 
-        // 异步加载2个故事数据
-        const topicDataList = await Promise.all(
-            selectedTopicMetas.map(meta => StoryManager.getStoryWithData(meta.id))
-        );
+        const [topicDataList, routeDataList] = await Promise.all([
+            Promise.all(selectedTopicMetas.map(meta => StoryManager.getStoryWithData(meta.id))),
+            Promise.all(selectedRouteMetas.map(meta => RouteManager.getRouteWithData(meta.id)))
+        ]);
 
-        // 过滤掉加载失败的故事
         const validTopicDataList = topicDataList.filter(data => data && data.story);
+        const validRouteDataList = routeDataList.filter(data => data && data.route && data.route.stops && data.route.stops.length > 0);
 
-        if (validTopicDataList.length === 0) {
+        if (validTopicDataList.length === 0 && validRouteDataList.length === 0) {
             container.innerHTML = `
                 <div class="container">
                     <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
@@ -796,8 +831,7 @@ const App = {
             return;
         }
 
-        // 生成故事HTML（每个故事随机选1个章节）
-        const storySectionsHTML = validTopicDataList.map((topicData, index) => {
+        const buildTopicSection = (topicData, index) => {
             const topicStory = topicData.story;
             const randomChapter = topicStory.chapters[Math.floor(Math.random() * topicStory.chapters.length)];
             const topicParagraphs = randomChapter.content.split('\n\n').filter(p => p.trim());
@@ -828,22 +862,9 @@ const App = {
                     </div>
                 </div>
             `;
-        }).join('');
+        };
 
-        // 随机选择2个不同的路线
-        const shuffledRouteMetas = this.shuffleArray([...allRouteMetas]);
-        const selectedRouteMetas = shuffledRouteMetas.slice(0, 2);
-
-        // 异步加载2个路线数据
-        const routeDataList = await Promise.all(
-            selectedRouteMetas.map(meta => RouteManager.getRouteWithData(meta.id))
-        );
-
-        // 过滤掉加载失败的路线
-        const validRouteDataList = routeDataList.filter(data => data && data.route && data.route.stops && data.route.stops.length > 0);
-
-        // 生成路线HTML（每个路线随机选1个站点）
-        const routeSectionsHTML = validRouteDataList.map((routeData, index) => {
+        const buildRouteSection = (routeData, index) => {
             const route = routeData.route;
             const randomStop = route.stops[Math.floor(Math.random() * route.stops.length)];
             const routeParagraphs = randomStop.content.split('\n\n').filter(p => p.trim());
@@ -879,7 +900,10 @@ const App = {
                     </div>
                 </div>
             `;
-        }).join('');
+        };
+
+        const storySectionsHTML = validTopicDataList.map(buildTopicSection).join('');
+        const routeSectionsHTML = validRouteDataList.map(buildRouteSection).join('');
 
         // 渲染内容
         container.innerHTML = `
@@ -922,20 +946,9 @@ const App = {
         if (chapterOrStop.buildings && chapterOrStop.buildings.length > 0) {
             const shuffledBuildings = this.shuffleArray([...chapterOrStop.buildings]);
             const featuredBuildingInfos = shuffledBuildings.slice(0, 2);
-            const featuredBuildings = featuredBuildingInfos.map(bInfo => {
-                if (!bInfo) return null;
-                // 优先从内嵌数据获取
-                if (bInfo.embedded) return bInfo.embedded;
-                // 否则从省份模块获取
-                const moduleName = this.dataModules[bInfo.province];
-                if (moduleName && typeof window[moduleName] !== 'undefined') {
-                    const module = window[moduleName];
-                    if (module && typeof module.getBuildingByName === 'function') {
-                        return module.getBuildingByName(bInfo.name);
-                    }
-                }
-                return null;
-            }).filter(b => b !== null);
+            const featuredBuildings = featuredBuildingInfos
+                .map(bInfo => bInfo ? this._resolveBuildingRef(bInfo) : null)
+                .filter(b => b !== null);
 
             const container = document.getElementById(containerId);
             if (container && featuredBuildings.length > 0) {
@@ -1023,14 +1036,11 @@ const App = {
 
         // 按区县分组建筑
         const buildingsByDistrict = {};
-        districts.forEach(d => {
-            buildingsByDistrict[d.id] = [];
-        });
-
         allBuildings.forEach(b => {
-            if (buildingsByDistrict[b.district]) {
-                buildingsByDistrict[b.district].push(b);
+            if (!buildingsByDistrict[b.district]) {
+                buildingsByDistrict[b.district] = [];
             }
+            buildingsByDistrict[b.district].push(b);
         });
 
         // 获取有数据的区县
@@ -1655,9 +1665,8 @@ const App = {
         // 跨省数据文件名为 cross-province.js，但模块名为 CrossProvinceData
         // 先尝试直接加载脚本
         if (!window.CrossProvinceData) {
-            try {
-                await this._loadScript('data/cross-province.js?v=3');
-            } catch (error) {
+            const result = await this.loadProvinceData('cross');
+            if (!result) {
                 container.innerHTML = `
                     <div class="container">
                         <div class="empty-state">
@@ -1785,18 +1794,9 @@ const App = {
                 <div class="topic-chapters">
                     ${story.chapters.map((chapter, index) => {
                         // 优先使用内嵌建筑数据
-                        const chapterBuildings = chapter.buildings.map(b => {
-                            if (b.embedded) return b.embedded;
-                            const moduleName = this.dataModules[b.province];
-                            if (moduleName && typeof window[moduleName] !== 'undefined') {
-                                const module = window[moduleName];
-                                if (module && typeof module.getBuildingByName === 'function') {
-                                    const building = module.getBuildingByName(b.name);
-                                    if (building) return building;
-                                }
-                            }
-                            return null;
-                        }).filter(b => b !== null);
+                        const chapterBuildings = chapter.buildings
+                            .map(b => this._resolveBuildingRef(b))
+                            .filter(b => b !== null);
 
                         return `
                         <div class="topic-chapter" id="chapter-${index}">
@@ -1825,17 +1825,8 @@ const App = {
                     <h3 class="section-title"><span class="section-icon">🏛️</span> 故事涉及古建一览</h3>
                     <div class="building-grid">
                         ${story.allBuildings.map(b => {
-                            const embedded = topicData.getBuildingByName ? topicData.getBuildingByName(b.name) : null;
-                            if (embedded) return this.createBuildingCard(embedded);
-                            const moduleName = this.dataModules[b.province];
-                            if (moduleName && typeof window[moduleName] !== 'undefined') {
-                                const module = window[moduleName];
-                                if (module && typeof module.getBuildingByName === 'function') {
-                                    const building = module.getBuildingByName(b.name);
-                                    if (building) return this.createBuildingCard(building);
-                                }
-                            }
-                            return '';
+                            const building = this._resolveBuildingRef(b, topicData);
+                            return building ? this.createBuildingCard(building) : '';
                         }).join('')}
                     </div>
                 </div>
@@ -1954,23 +1945,9 @@ const App = {
                     ${route.stops.map((stop, index) => {
                         const isLast = index === totalStops - 1;
                         const isFirst = index === 0;
-                        const stopBuildings = stop.buildings.map(b => {
-                            // 1. 先尝试从内嵌数据获取
-                            if (b.embedded) return b.embedded;
-                            // 2. 尝试从路线模块获取
-                            const embedded = routeData.getBuildingByName ? routeData.getBuildingByName(b.name) : null;
-                            if (embedded) return embedded;
-                            // 3. 从省份模块获取
-                            const moduleName = this.dataModules[b.province];
-                            if (moduleName && typeof window[moduleName] !== 'undefined') {
-                                const module = window[moduleName];
-                                if (module && typeof module.getBuildingByName === 'function') {
-                                    const building = module.getBuildingByName(b.name);
-                                    if (building) return building;
-                                }
-                            }
-                            return null;
-                        }).filter(b => b !== null);
+                        const stopBuildings = stop.buildings
+                            .map(b => this._resolveBuildingRef(b, routeData))
+                            .filter(b => b !== null);
 
                         return `
                         <div class="route-stop" style="position: relative; padding-left: 64px; margin-bottom: ${isLast ? '0' : '2rem'};">
@@ -1980,7 +1957,7 @@ const App = {
                             </div>
 
                             <!-- 站点内容卡片 -->
-                            <div class="route-stop-card" style="background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius); overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                            <div class="route-stop-card">
                                 <!-- 卡片头部 -->
                                 <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); background: linear-gradient(135deg, ${routeData.bgColor}80 0%, var(--bg-card) 100%);">
                                     <div style="display: flex; align-items: center; gap: 0.625rem;">
@@ -2037,21 +2014,8 @@ const App = {
                     <h3 class="section-title"><span class="section-icon">🏛️</span> 路线涉及古建一览</h3>
                     <div class="building-grid">
                         ${route.allBuildings.map(b => {
-                            // 1. 先尝试从内嵌数据获取
-                            if (b.embedded) return this.createBuildingCard(b.embedded);
-                            // 2. 尝试从路线模块获取
-                            const embedded = routeData.getBuildingByName ? routeData.getBuildingByName(b.name) : null;
-                            if (embedded) return this.createBuildingCard(embedded);
-                            // 3. 从省份模块获取
-                            const moduleName = this.dataModules[b.province];
-                            if (moduleName && typeof window[moduleName] !== 'undefined') {
-                                const module = window[moduleName];
-                                if (module && typeof module.getBuildingByName === 'function') {
-                                    const building = module.getBuildingByName(b.name);
-                                    if (building) return this.createBuildingCard(building);
-                                }
-                            }
-                            return '';
+                            const building = this._resolveBuildingRef(b, routeData);
+                            return building ? this.createBuildingCard(building) : '';
                         }).join('')}
                     </div>
                 </div>

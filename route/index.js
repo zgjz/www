@@ -159,13 +159,7 @@ const RouteManager = {
     },
 
     _loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
+        return App._loadScript(src);
     },
 
     // 获取路线完整数据

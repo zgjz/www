@@ -224,15 +224,8 @@ const StoryManager = {
         };
     },
 
-    // 加载单个脚本
     _loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
+        return App._loadScript(src);
     },
 
     // 获取故事完整数据（含故事内容）
