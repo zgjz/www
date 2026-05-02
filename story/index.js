@@ -174,54 +174,9 @@ const StoryManager = {
             this._loadedStories.add(id);
             return window[meta.moduleName];
         } catch (error) {
-            console.warn(`独立故事文件 ${meta.fileName}.js 加载失败，尝试回退到 topics.js`);
-        }
-
-        // 回退：加载 data/topics.js 并从中提取故事数据
-        try {
-            if (typeof TopicsData === 'undefined') {
-                await this._loadScript('data/topics.js');
-            }
-            if (typeof TopicsData !== 'undefined' && TopicsData.getTopicById) {
-                const topic = TopicsData.getTopicById(id);
-                if (topic) {
-                    // 包装成新格式
-                    const wrappedModule = this._wrapTopicData(topic);
-                    window[meta.moduleName] = wrappedModule;
-                    this._loadedStories.add(id);
-                    return wrappedModule;
-                }
-            }
-        } catch (error) {
             console.error(`加载故事 ${id} 失败:`, error);
+            return null;
         }
-
-        return null;
-    },
-
-    // 将旧 TopicsData 格式包装为新格式
-    _wrapTopicData(topic) {
-        return {
-            getStory() {
-                return topic.story;
-            },
-            getAllBuildings() {
-                return topic.story.allBuildings || [];
-            },
-            getBuildingByName(name) {
-                for (const chapter of topic.story.chapters) {
-                    for (const b of chapter.buildings) {
-                        if (b.name === name) {
-                            return b.embedded || null;
-                        }
-                    }
-                }
-                for (const b of topic.story.allBuildings || []) {
-                    if (b.name === name) return b;
-                }
-                return null;
-            }
-        };
     },
 
     _loadScript(src) {

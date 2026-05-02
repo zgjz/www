@@ -1,7 +1,7 @@
 // 台湾国定古迹数据
 const TaiwanData = {
     provinceId: 'taiwan',
-    provinceName: '台湾',
+    provinceName: '台湾省',
     totalCount: 108,
 
     // 行政区划

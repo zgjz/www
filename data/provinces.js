@@ -38,17 +38,6 @@ const ProvincesData = {
         { id: 'macau', name: '澳门特别行政区', count: 140 }
     ],
 
-    // 跨省文物保护单位列表
-    crossProvince: [
-        { name: '长城', type: 'cross-province' },
-        { name: '大运河', type: 'cross-province' },
-        { name: '丝绸之路:长安-天山廊道的路网', type: 'cross-province' },
-        { name: '秦直道遗址', type: 'cross-province' },
-        { name: '中东铁路建筑群', type: 'cross-province' },
-        { name: '齐长城遗址', type: 'cross-province' },
-        { name: '茶马古道', type: 'cross-province' }
-    ],
-
     // 获取所有省份
     getAllProvinces() {
         return this.provinces;
@@ -59,46 +48,22 @@ const ProvincesData = {
         return this.provinces.find(p => p.id === id);
     },
 
-    // 获取有数据的省份
-    getProvincesWithData() {
-        return this.provinces.filter(p => p.count > 0);
-    },
-
-    // 获取跨省文保
-    getCrossProvince() {
-        return this.crossProvince;
-    },
-
-    // 更新省份文保数量
-    updateProvinceCount(provinceId, count) {
-        const province = this.getProvinceById(provinceId);
-        if (province) {
-            province.count = count;
-        }
+    // 获取保护单位标签（台湾、香港、澳门使用各自的分类名称）
+    getProtectionLabel(provinceId) {
+        const labels = {
+            'taiwan': '国定古迹',
+            'hongkong': '一级历史建筑',
+            'macau': '文物名录'
+        };
+        return labels[provinceId] || '全国重点文物保护单位';
     }
 };
 
 // 数据加载管理器
 const DataLoader = {
-    loadedModules: new Set(),
     _allBuildingsCache: null,
     _allTagsCache: null,
     _tagBuildingsCache: {},
-
-    // 加载省份数据
-    async loadProvinceData(provinceId) {
-        if (this.loadedModules.has(provinceId)) {
-            return window[`${provinceId}Data`];
-        }
-
-        try {
-            const module = await import(`./${provinceId}.js`);
-            this.loadedModules.add(provinceId);
-            return module.default || module;
-        } catch (error) {
-            return null;
-        }
-    },
 
     // 已加载的数据模块列表
     dataModules: [
@@ -110,13 +75,6 @@ const DataLoader = {
         'XizangData', 'ShaanxiData', 'GansuData', 'QinghaiData', 'NingxiaData',
         'XinjiangData', 'TaiwanData', 'HongKongData', 'MacauData', 'CrossProvinceData'
     ],
-
-    // 清除缓存
-    clearCache() {
-        this._allBuildingsCache = null;
-        this._allTagsCache = null;
-        this._tagBuildingsCache = {};
-    },
 
     // 获取所有建筑数据（带缓存）
     getAllBuildings() {

@@ -772,27 +772,6 @@ const App = {
         return null;
     },
 
-    // 趣味标题库
-    funTitles: [
-        { icon: '🏛️', text: '今日邂逅的古建' },
-        { icon: '🐉', text: '穿越千年的遇见' },
-        { icon: '🏮', text: '檐角下的故事' },
-        { icon: '📜', text: '时光里的瑰宝' },
-        { icon: '🌸', text: '砖瓦间的诗意' },
-        { icon: '⛩️', text: '门楣上的岁月' },
-        { icon: '🎋', text: '梁枋间的记忆' },
-        { icon: '🪴', text: '庭院深处的惊喜' },
-        { icon: '🔔', text: '晨钟暮鼓的见证' },
-        { icon: '🦅', text: '飞檐下的守望' }
-    ],
-
-    // 获取随机趣味标题
-    getFunTitle() {
-        const index = Math.floor(Math.random() * this.funTitles.length);
-        const title = this.funTitles[index];
-        return `<span class="section-icon">${title.icon}</span> ${title.text}`;
-    },
-
     // 渲染首页 - 异步加载数据后渲染
     async renderHome(container) {
         // 显示加载状态
@@ -1073,6 +1052,8 @@ const App = {
             return App.shuffleArray([...tags]).slice(0, 7);
         };
 
+        const protectionLabel = ProvincesData.getProtectionLabel(provinceId);
+
         container.innerHTML = `
             <div class="container">
                 <div class="province-header" style="background: linear-gradient(135deg, ${provinceStyle.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${provinceStyle.color}25;">
@@ -1080,7 +1061,7 @@ const App = {
                     <div class="province-header-info">
                         <h2 class="section-title" style="margin: 0;">${province.name}</h2>
                         <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">
-                            共有 <strong style="color: ${provinceStyle.color};">${province.count}</strong> 处全国重点文物保护单位
+                            共有 <strong style="color: ${provinceStyle.color};">${province.count}</strong> 处${protectionLabel}
                         </p>
                     </div>
                 </div>
@@ -1099,7 +1080,7 @@ const App = {
                                 <span class="district-grid-card-name">${district.name}</span>
                                 ${hasHeritage ? '<span class="district-grid-heritage">🌍</span>' : ''}
                             </div>
-                            <div class="district-grid-card-count">${districtBuildings.length} 处全国重点文物保护单位</div>
+                            <div class="district-grid-card-count">${districtBuildings.length} 处${protectionLabel}</div>
                             ${eraSummary ? `<div class="district-grid-card-eras">${eraSummary}</div>` : ''}
                             <div class="district-grid-card-examples">
                                 ${featuredBuildings.map(b => `<div class="district-grid-card-example">🏛️ ${b.name}</div>`).join('')}
@@ -1150,6 +1131,8 @@ const App = {
             }
         }
 
+        const districtProtectionLabel = ProvincesData.getProtectionLabel(provinceId);
+
         container.innerHTML = `
             <div class="container">
                 <div class="district-header" style="background: linear-gradient(135deg, ${provinceStyle.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${provinceStyle.color}25;">
@@ -1157,7 +1140,7 @@ const App = {
                     <div class="district-header-info">
                         <h2 class="section-title" style="margin: 0;">${province.name} - ${district.name}</h2>
                         <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">
-                            共有 <strong style="color: ${provinceStyle.color};">${district.count}</strong> 处全国重点文物保护单位
+                            共有 <strong style="color: ${provinceStyle.color};">${district.count}</strong> 处${districtProtectionLabel}
                         </p>
                     </div>
                 </div>
