@@ -25,12 +25,6 @@ const RouteManager = {
             name: '诗路寻踪',
             icon: '📜',
             description: '诗人笔下的壮美山河'
-        },
-        game: {
-            id: 'game',
-            name: '游戏世界',
-            icon: '🎮',
-            description: '游戏中的古建场景原型'
         }
     },
 
@@ -107,18 +101,6 @@ const RouteManager = {
             description: '从长安到成都，沿金牛道探访李白笔下的蜀道，感受"蜀道之难，难于上青天"的奇险与壮美。',
             moduleName: 'RouteShudaoRoad',
             fileName: 'shudao-road'
-        },
-        {
-            id: 'black-myth-wukong',
-            title: '黑神话：悟空',
-            subtitle: '跟着游戏游中国古建',
-            icon: '🐵',
-            color: '#C41E3A',
-            bgColor: '#FFF5F5',
-            category: 'game',
-            description: '追随《黑神话：悟空》的游戏足迹，探访那些成为游戏场景原型的千年古建，感受虚拟与现实的交融。',
-            moduleName: 'RouteBlackMythWukong',
-            fileName: 'black-myth-wukong'
         }
     ],
 

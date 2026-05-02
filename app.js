@@ -370,6 +370,7 @@ const App = {
         this.state.currentTag = null;
         this.state.currentTopic = null;
         this.state.currentRoute = null;
+        this.state.currentGame = null;
 
         // 处理建筑详情页URL格式
         if (this.state.currentView === 'building' && parts[1]) {
@@ -388,6 +389,8 @@ const App = {
             this.state.currentTopic = decodeURIComponent(parts[1]);
         } else if (this.state.currentView === 'route' && parts[1]) {
             this.state.currentRoute = decodeURIComponent(parts[1]);
+        } else if (this.state.currentView === 'game' && parts[1]) {
+            this.state.currentGame = decodeURIComponent(parts[1]);
         }
 
         // 关闭移动端菜单
@@ -543,6 +546,16 @@ const App = {
             }
         }
 
+        if (!building) {
+            for (const gameMeta of GameManager.getAllGames()) {
+                const module = window[gameMeta.moduleName];
+                if (module && typeof module.getBuildingByName === 'function') {
+                    building = module.getBuildingByName(fullPath);
+                    if (building) break;
+                }
+            }
+        }
+
         if (building) {
             this._cache.buildingByName.set(fullPath, building);
         }
@@ -671,6 +684,12 @@ const App = {
             case 'route':
                 this.renderRouteDetail(mainContent, this.state.currentRoute);
                 break;
+            case 'games':
+                this.renderGameList(mainContent);
+                break;
+            case 'game':
+                this.renderGameDetail(mainContent, this.state.currentGame);
+                break;
             default:
                 this.renderHome(mainContent);
         }
@@ -738,6 +757,14 @@ const App = {
             if (route) {
                 items.push({ name: `${route.icon} ${route.title}`, hash: `route/${route.id}`, active: true });
             }
+        } else if (this.state.currentView === 'games') {
+            items.push({ name: '🎮 游戏', hash: 'games', active: true });
+        } else if (this.state.currentView === 'game' && this.state.currentGame) {
+            items.push({ name: '🎮 游戏', hash: 'games' });
+            const game = GameManager.getGameMeta(this.state.currentGame);
+            if (game) {
+                items.push({ name: `${game.icon} ${game.title}`, hash: `game/${game.id}`, active: true });
+            }
         }
 
         breadcrumbList.innerHTML = items.map((item, index) => {
@@ -785,20 +812,24 @@ const App = {
         `;
 
         const allTopicMetas = StoryManager.getAllStories();
+        const allGameMetas = GameManager.getAllGames();
         const allRouteMetas = RouteManager.getAllRoutes();
 
-        const selectedTopicMetas = this.shuffleArray([...allTopicMetas]).slice(0, 2);
-        const selectedRouteMetas = this.shuffleArray([...allRouteMetas]).slice(0, 2);
+        const selectedTopicMeta = this.shuffleArray([...allTopicMetas]).slice(0, 1)[0];
+        const selectedGameMeta = this.shuffleArray([...allGameMetas]).slice(0, 1)[0];
+        const selectedRouteMeta = this.shuffleArray([...allRouteMetas]).slice(0, 1)[0];
 
-        const [topicDataList, routeDataList] = await Promise.all([
-            Promise.all(selectedTopicMetas.map(meta => StoryManager.getStoryWithData(meta.id))),
-            Promise.all(selectedRouteMetas.map(meta => RouteManager.getRouteWithData(meta.id)))
+        const [topicData, gameData, routeData] = await Promise.all([
+            selectedTopicMeta ? StoryManager.getStoryWithData(selectedTopicMeta.id) : Promise.resolve(null),
+            selectedGameMeta ? GameManager.getGameWithData(selectedGameMeta.id) : Promise.resolve(null),
+            selectedRouteMeta ? RouteManager.getRouteWithData(selectedRouteMeta.id) : Promise.resolve(null)
         ]);
 
-        const validTopicDataList = topicDataList.filter(data => data && data.story);
-        const validRouteDataList = routeDataList.filter(data => data && data.route && data.route.stops && data.route.stops.length > 0);
+        const validTopicData = topicData && topicData.story ? topicData : null;
+        const validGameData = gameData && gameData.story ? gameData : null;
+        const validRouteData = routeData && routeData.route && routeData.route.stops && routeData.route.stops.length > 0 ? routeData : null;
 
-        if (validTopicDataList.length === 0 && validRouteDataList.length === 0) {
+        if (!validTopicData && !validGameData && !validRouteData) {
             container.innerHTML = `
                 <div class="container">
                     <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
@@ -810,14 +841,15 @@ const App = {
             return;
         }
 
-        const buildTopicSection = (topicData, index) => {
+        const buildTopicSection = (topicData, type, index) => {
             const topicStory = topicData.story;
             const randomChapter = topicStory.chapters[Math.floor(Math.random() * topicStory.chapters.length)];
             const topicParagraphs = randomChapter.content.split('\n\n').filter(p => p.trim());
             const featuredTopicParagraphs = topicParagraphs.slice(0, 2);
+            const hashPrefix = type === 'game' ? 'game' : 'story';
 
             return `
-                <div class="home-topic-section" onclick="window.location.hash='story/${topicData.id}'" style="${index > 0 ? 'margin-top: 2rem;' : ''}">
+                <div class="home-topic-section" onclick="window.location.hash='${hashPrefix}/${topicData.id}'" style="${index > 0 ? 'margin-top: 2rem;' : ''}">
                     <div class="home-topic-header" style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; padding-bottom: 0.625rem; border-bottom: 2px solid ${topicData.color}30; cursor: pointer;">
                         <span style="font-size: 1.5rem;">${topicData.icon}</span>
                         <div>
@@ -835,7 +867,7 @@ const App = {
                                 ${featuredTopicParagraphs.map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
                             </div>
                         </div>
-                        <div class="home-featured-buildings" id="home-story-buildings-${index}">
+                        <div class="home-featured-buildings" id="home-section-buildings-${index}">
                             <div style="flex:1;min-width:0;padding:1rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">🏛️ 加载中...</div>
                         </div>
                     </div>
@@ -873,7 +905,7 @@ const App = {
                                 ${featuredRouteParagraphs.map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
                             </div>
                         </div>
-                        <div class="home-featured-buildings" id="home-route-buildings-${index}">
+                        <div class="home-featured-buildings" id="home-section-buildings-${index}">
                             <div style="flex:1;min-width:0;padding:1rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">🏛️ 加载中...</div>
                         </div>
                     </div>
@@ -881,28 +913,42 @@ const App = {
             `;
         };
 
-        const storySectionsHTML = validTopicDataList.map(buildTopicSection).join('');
-        const routeSectionsHTML = validRouteDataList.map(buildRouteSection).join('');
+        let sectionsHTML = '';
+        let sectionIndex = 0;
+        const loadTasks = [];
 
-        // 渲染内容
+        if (validGameData) {
+            sectionsHTML += buildTopicSection(validGameData, 'game', sectionIndex);
+            const gameStory = validGameData.story;
+            const randomChapter = gameStory.chapters[Math.floor(Math.random() * gameStory.chapters.length)];
+            loadTasks.push({ data: validGameData, chapter: randomChapter, containerId: `home-section-buildings-${sectionIndex}` });
+            sectionIndex++;
+        }
+
+        if (validTopicData) {
+            sectionsHTML += buildTopicSection(validTopicData, 'story', sectionIndex);
+            const topicStory = validTopicData.story;
+            const randomChapter = topicStory.chapters[Math.floor(Math.random() * topicStory.chapters.length)];
+            loadTasks.push({ data: validTopicData, chapter: randomChapter, containerId: `home-section-buildings-${sectionIndex}` });
+            sectionIndex++;
+        }
+
+        if (validRouteData) {
+            sectionsHTML += buildRouteSection(validRouteData, sectionIndex);
+            const route = validRouteData.route;
+            const randomStop = route.stops[Math.floor(Math.random() * route.stops.length)];
+            loadTasks.push({ data: validRouteData, chapter: randomStop, containerId: `home-section-buildings-${sectionIndex}` });
+            sectionIndex++;
+        }
+
         container.innerHTML = `
             <div class="container">
-                ${storySectionsHTML}
-                ${routeSectionsHTML}
+                ${sectionsHTML}
             </div>
         `;
 
-        // 后台异步加载建筑数据并填充
-        validTopicDataList.forEach((topicData, index) => {
-            const topicStory = topicData.story;
-            const randomChapter = topicStory.chapters[Math.floor(Math.random() * topicStory.chapters.length)];
-            this._loadHomeFeaturedBuildings(topicData, randomChapter, `home-story-buildings-${index}`);
-        });
-
-        validRouteDataList.forEach((routeData, index) => {
-            const route = routeData.route;
-            const randomStop = route.stops[Math.floor(Math.random() * route.stops.length)];
-            this._loadHomeFeaturedBuildings(routeData, randomStop, `home-route-buildings-${index}`);
+        loadTasks.forEach(task => {
+            this._loadHomeFeaturedBuildings(task.data, task.chapter, task.containerId);
         });
     },
 
@@ -1998,6 +2044,136 @@ const App = {
                     <div class="building-grid">
                         ${route.allBuildings.map(b => {
                             const building = this._resolveBuildingRef(b, routeData);
+                            return building ? this.createBuildingCard(building) : '';
+                        }).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    },
+
+    // 渲染游戏列表页
+    async renderGameList(container) {
+        const games = GameManager.getAllGames();
+        const categories = GameManager.categories;
+
+        const gamesByCategory = {};
+        Object.keys(categories).forEach(key => {
+            gamesByCategory[key] = [];
+        });
+
+        games.forEach(game => {
+            if (game.category && gamesByCategory[game.category]) {
+                gamesByCategory[game.category].push(game);
+            }
+        });
+
+        container.innerHTML = `
+            <div class="container">
+                <h2 class="section-title"><span class="section-icon">🎮</span> 游戏</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">走进热门游戏中的中国古建场景原型，在虚拟与现实之间架起桥梁</p>
+
+                ${Object.entries(categories).map(([key, category]) => {
+                    const categoryGames = gamesByCategory[key];
+                    if (categoryGames.length === 0) return '';
+
+                    return `
+                    <div class="story-category-section" style="margin-bottom: 2.5rem;">
+                        <div class="story-category-header" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--border-light);">
+                            <span style="font-size: 1.5rem;">${category.icon}</span>
+                            <div>
+                                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin: 0;">${category.name}</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">${category.description}</p>
+                            </div>
+                            <span style="margin-left: auto; font-size: 0.875rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.25rem 0.75rem; border-radius: 9999px;">${categoryGames.length} 款游戏</span>
+                        </div>
+                        <div class="topics-grid">
+                            ${categoryGames.map(game => `
+                                <div class="topic-card" onclick="window.location.hash='game/${game.id}'" style="border-left-color: ${game.color};">
+                                    <div class="topic-card-icon" style="background: ${game.bgColor}; color: ${game.color};">${game.icon}</div>
+                                    <div class="topic-card-content">
+                                        <div class="topic-card-title">${game.title}</div>
+                                        <div class="topic-card-subtitle">${game.subtitle}</div>
+                                        <div class="topic-card-desc">${game.description}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    },
+
+    // 渲染游戏详情页
+    async renderGameDetail(container, gameId) {
+        const gameModule = await GameManager.loadGame(gameId);
+        const gameMeta = GameManager.getGameMeta(gameId);
+
+        if (!gameModule || !gameModule.story) {
+            container.innerHTML = `
+                <div class="container">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎮</div>
+                        <div class="empty-state-title">游戏内容未找到</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const story = gameModule.story;
+
+        container.innerHTML = `
+            <div class="container">
+                <div class="topic-detail-header" style="background: linear-gradient(135deg, ${gameMeta.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${gameMeta.color}25;">
+                    <div class="topic-detail-icon" style="background: ${gameMeta.color};">${gameMeta.icon}</div>
+                    <div class="topic-detail-info">
+                        <h1 class="topic-detail-title">${story.title}</h1>
+                        <p class="topic-detail-subtitle">${gameMeta.subtitle}</p>
+                    </div>
+                </div>
+
+                <div class="topic-intro">
+                    ${story.intro.split('\n\n').map(p => `<p>${p}</p>`).join('')}
+                </div>
+
+                <div class="topic-chapters">
+                    ${story.chapters.map((chapter, index) => {
+                        const chapterBuildings = chapter.buildings
+                            .map(b => this._resolveBuildingRef(b, gameMeta))
+                            .filter(b => b !== null);
+
+                        return `
+                        <div class="topic-chapter" id="chapter-${index}">
+                            <h3 class="topic-chapter-title">
+                                <span class="topic-chapter-icon">${chapter.icon}</span>
+                                ${chapter.title}
+                            </h3>
+                            <div class="topic-chapter-content">
+                                ${chapter.content.split('\n\n').map(p => `<p>${p}</p>`).join('')}
+                            </div>
+                            ${chapterBuildings.length > 0 ? `
+                                <div class="topic-chapter-buildings">
+                                    <h4 class="topic-buildings-title">🏛️ 相关古建</h4>
+                                    <div class="building-grid compact">
+                                        ${chapterBuildings.map(building => this.createBuildingCard(building)).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                ${story.allBuildings.length > 0 ? `
+                <div class="topic-all-buildings">
+                    <h3 class="section-title"><span class="section-icon">🏛️</span> 游戏涉及古建一览</h3>
+                    <div class="building-grid">
+                        ${story.allBuildings.map(b => {
+                            const building = this._resolveBuildingRef(b, gameMeta);
                             return building ? this.createBuildingCard(building) : '';
                         }).join('')}
                     </div>
