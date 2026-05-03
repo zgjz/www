@@ -1041,8 +1041,30 @@ const App = {
             return;
         }
 
+        container.innerHTML = `
+            <div class="container">
+                <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">${provinceStyle.icon}</div>
+                    <div>正在加载${province.name}数据...</div>
+                </div>
+            </div>
+        `;
+
         // 按需加载省份数据
-        await this.loadProvinceData(provinceId);
+        const result = await this.loadProvinceData(provinceId);
+
+        if (!result) {
+            container.innerHTML = `
+                <div class="container">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">数据加载失败</div>
+                        <p>无法加载${province.name}的数据，请刷新页面重试</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
 
         let districts = [];
         let allBuildings = [];
@@ -1321,6 +1343,25 @@ const App = {
                                     const tagStyle = this.getTagStyle(tag, idx);
                                     return `<span class="building-detail-tag" onclick="window.location.hash='tag/${encodeURIComponent(tag)}'" style="background: ${tagStyle.bg}; color: ${tagStyle.color}; border-color: ${tagStyle.color}30;"><span class="tag-icon">${tagStyle.icon}</span> ${tag}</span>`;
                                 }).join('')}
+                            </div>
+                        </div>
+
+                        <div class="building-detail-section" id="section-video">
+                            <h3><span class="section-icon">🎬</span> 相关视频</h3>
+                            <p class="video-hint">点击下方按钮搜索「${building.name}」的短视频</p>
+                            <div class="video-links">
+                                <a href="https://www.douyin.com/search/${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link douyin">
+                                    <span class="video-link-icon">🎵</span>
+                                    <span class="video-link-label">抖音</span>
+                                </a>
+                                <a href="https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link xiaohongshu">
+                                    <span class="video-link-icon">📕</span>
+                                    <span class="video-link-label">小红书</span>
+                                </a>
+                                <a href="https://search.bilibili.com/all?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link bilibili">
+                                    <span class="video-link-icon">📺</span>
+                                    <span class="video-link-label">哔哩哔哩</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -2183,13 +2224,14 @@ const App = {
         `;
     },
 
-    // 数组随机排序
+    // 数组随机排序（返回新数组，不修改原数组）
     shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-        return array;
+        return arr;
     }
 };
 

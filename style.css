@@ -1334,3 +1334,63 @@ section {
         min-width: 0;
     }
 }
+
+/* Video Links */
+.video-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0 0 0.75rem 0;
+}
+
+.video-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+}
+
+.video-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: white;
+    transition: var(--transition-fast);
+}
+
+.video-link:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    color: white;
+}
+
+.video-link-icon {
+    font-size: 0.9375rem;
+}
+
+.video-link.douyin {
+    background: linear-gradient(135deg, #010101, #2A2A2A);
+}
+
+.video-link.douyin:hover {
+    background: linear-gradient(135deg, #FF004F, #010101);
+}
+
+.video-link.xiaohongshu {
+    background: linear-gradient(135deg, #FF2442, #FE2C55);
+}
+
+.video-link.xiaohongshu:hover {
+    background: linear-gradient(135deg, #E01E3C, #FF2442);
+}
+
+.video-link.bilibili {
+    background: linear-gradient(135deg, #00A1D6, #FB7299);
+}
+
+.video-link.bilibili:hover {
+    background: linear-gradient(135deg, #0088B9, #E86589);
+}
