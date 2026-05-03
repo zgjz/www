@@ -5,7 +5,7 @@ const ProvincesData = {
         { id: 'beijing', name: '北京市', count: 135 },
         { id: 'tianjin', name: '天津市', count: 33 },
         { id: 'hebei', name: '河北省', count: 282 },
-        { id: 'shanxi', name: '山西省', count: 531 },
+        { id: 'shanxi', name: '山西省', count: 525 },
         { id: 'neimenggu', name: '内蒙古自治区', count: 150 },
         { id: 'liaoning', name: '辽宁省', count: 154 },
         { id: 'jilin', name: '吉林省', count: 97 },
