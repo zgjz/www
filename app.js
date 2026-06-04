@@ -514,6 +514,7 @@ const App = {
   },
 
   getProvinceName(provinceId) {
+    if (!provinceId) return '';
     if (provinceId === 'cross') return '跨省';
     const p = this._provinceMeta?.provinces?.find(p => p.id === provinceId);
     return p ? p.name : provinceId;
@@ -590,7 +591,9 @@ const App = {
     let building = allBuildings.find(b => b.name === fullPath);
     if (!building) {
       building = allBuildings.find(b => {
-        const p = `${b.province || ''}${b.districtName || ''}${b.name}`;
+        const pn = b.province || this.getProvinceName(b.provinceId) || '';
+        const dn = b.districtName || '';
+        const p = `${pn}${dn}${b.name}`;
         return p === fullPath;
       });
     }
@@ -604,8 +607,9 @@ const App = {
   },
 
   generateBuildingHash(building) {
-    const provinceName = building.province || this.getProvinceName(building.provinceId);
-    const fullPath = `${provinceName}${building.districtName}${building.name}`;
+    const provinceName = building.province || this.getProvinceName(building.provinceId) || '';
+    const districtName = building.districtName || '';
+    const fullPath = `${provinceName}${districtName}${building.name}`;
     return `?page=building&name=${encodeURIComponent(fullPath)}`;
   },
 
@@ -1142,11 +1146,13 @@ const App = {
         const data = this._cache.provinceData.get(id);
         if (!data?.buildings) continue;
         loadedProvinces.add(id);
+        const provinceName = this.getProvinceName(id);
         for (const b of data.buildings) {
           const key = `${id}_${b.district}_${b.name}`;
           if (addedNames.has(key)) continue;
           if (b.lat === undefined || b.lng === undefined) continue;
           addedNames.add(key);
+          b.province = provinceName;
           const marker = this._createMapMarker(b);
           const eraId = this.getEarliestDynasty(b.era);
           this._mapMarkers.push({ marker, categoryKey: marker._categoryKey, eraId });
