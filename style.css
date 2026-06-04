@@ -1731,6 +1731,34 @@ a:hover {
     flex-shrink: 0;
 }
 
+.map-stat-loading .map-stat-label {
+    font-size: 0.65rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.map-stat-remaining {
+    font-size: 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.3s;
+}
+
+.map-stat-remaining.loading {
+    color: #e67e22;
+    animation: pulse-remaining 1.2s ease-in-out infinite;
+}
+
+.map-stat-remaining.done {
+    color: #27ae60;
+}
+
+@keyframes pulse-remaining {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
 .map-full-wrapper {
     flex: 1;
     position: relative;

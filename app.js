@@ -1073,9 +1073,11 @@ const App = {
               <span class="map-stat-num" id="mapStatProvinces">${this._provinceMeta?.provinces?.length || 0}</span>
             </div>
             <span class="map-stat-sep">·</span>
-            <div class="map-stat-item">
-              <span class="map-stat-label">已加载</span>
+            <div class="map-stat-item map-stat-loading">
+              <span class="map-stat-label">加载中</span>
               <span class="map-stat-num" id="mapStatLoaded">0</span>
+              <span class="map-stat-label">/ <span id="mapTotalCount2">0</span></span>
+              <span class="map-stat-remaining" id="mapStatRemaining"></span>
             </div>
           </div>
           <span class="map-stats-tip">⚠️ 港澳台建筑位置为近似坐标</span>
@@ -1136,7 +1138,9 @@ const App = {
     const batchSize = 5;
 
     const totalCountEl = document.getElementById('mapTotalCount');
+    const totalCount2El = document.getElementById('mapTotalCount2');
     if (totalCountEl) totalCountEl.textContent = allIds.length;
+    if (totalCount2El) totalCount2El.textContent = allIds.length;
 
     for (let i = 0; i < allIds.length; i += batchSize) {
       if (!this._markerCluster) return;
@@ -1165,12 +1169,18 @@ const App = {
 
       // Update progress
       const loaded = loadedProvinces.size;
+      const remaining = allIds.length - loaded;
       const loadedCount = document.getElementById('mapLoadedCount');
       const statLoaded = document.getElementById('mapStatLoaded');
       const statTotal = document.getElementById('mapStatTotal');
+      const statRemaining = document.getElementById('mapStatRemaining');
       if (loadedCount) loadedCount.textContent = loaded;
       if (statLoaded) statLoaded.textContent = loaded;
       if (statTotal) statTotal.textContent = totalBuildings;
+      if (statRemaining) {
+        statRemaining.textContent = remaining > 0 ? `· 剩余${remaining}省` : '· 全部完成 ✓';
+        statRemaining.className = 'map-stat-remaining' + (remaining > 0 ? ' loading' : ' done');
+      }
 
       // Render timeline and hide overlay after first batch
       if (i === 0) {
