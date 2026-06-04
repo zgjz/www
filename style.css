@@ -1450,63 +1450,21 @@ a:hover {
     }
 }
 
-.map-loading-overlay {
+.map-progress-bar {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 3px;
     z-index: 1000;
-    transition: opacity 0.5s ease;
-    pointer-events: none;
-}
-
-.map-loading-content {
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
-    padding: 1.5rem 2rem;
-    text-align: center;
-    box-shadow: var(--shadow-lg);
-    min-width: 260px;
-    pointer-events: auto;
-}
-
-.map-loading-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-.map-loading-text {
-    font-size: 0.875rem;
-    color: var(--text-primary);
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-}
-
-.map-loading-progress {
-    width: 100%;
-    height: 4px;
     background: var(--bg-secondary);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
 }
 
-.map-loading-bar {
+.map-progress-fill {
     height: 100%;
+    width: 0%;
     background: var(--accent-color);
-    border-radius: 2px;
-    transition: width 0.3s ease;
-}
-
-.map-loading-count {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    transition: width 0.4s ease, opacity 0.5s ease;
 }
 
 .map-cluster {
@@ -1620,13 +1578,52 @@ a:hover {
 
 .map-stats-bar {
     background: var(--bg-card);
-    padding: 0.1rem 0.75rem;
+    padding: 0 0.75rem;
     flex-shrink: 0;
     border-bottom: 1px solid var(--border-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
+    height: 1.4rem;
+    min-height: 1.4rem;
+    overflow: hidden;
+}
+
+.map-stats-inner {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+    height: 1.4rem;
+}
+
+.map-stat-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.2rem;
+    height: 1.4rem;
+    line-height: 1.4rem;
+}
+
+.map-stat-num {
+    font-size: 0.7rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    line-height: 1.4rem;
+}
+
+.map-stat-label {
+    font-size: 0.65rem;
+    font-weight: 300;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    line-height: 1.4rem;
 }
 
 .map-stats-inner {
@@ -1664,6 +1661,7 @@ a:hover {
     color: var(--border-light);
     font-size: 0.5rem;
     font-weight: 300;
+    line-height: 1.4rem;
 }
 
 .map-legend {
@@ -1729,33 +1727,45 @@ a:hover {
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
+    line-height: 1.4rem;
 }
 
-.map-stat-loading .map-stat-label {
-    font-size: 0.65rem;
-    font-weight: 300;
-    color: var(--text-muted);
-    white-space: nowrap;
+.map-stat-loading {
+    gap: 0.1rem;
 }
 
 .map-stat-remaining {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 600;
     white-space: nowrap;
     transition: color 0.3s;
+    text-align: left;
+    line-height: 1.4rem;
+}
+
+.map-stat-loading {
+    gap: 0.1rem;
+}
+
+.map-stat-remaining {
+    font-size: 0.6rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.3s;
+    margin-left: 0.1rem;
 }
 
 .map-stat-remaining.loading {
     color: #e67e22;
-    animation: pulse-remaining 1.2s ease-in-out infinite;
+    animation: pulse-loading 1s ease-in-out infinite;
 }
 
 .map-stat-remaining.done {
     color: #27ae60;
 }
 
-@keyframes pulse-remaining {
-    0%, 100% { opacity: 0.6; }
+@keyframes pulse-loading {
+    0%, 100% { opacity: 0.5; }
     50% { opacity: 1; }
 }
 
