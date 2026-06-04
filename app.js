@@ -1,2243 +1,1869 @@
-// 主应用模块
 const App = {
-    // 当前状态
-    state: {
-        currentView: 'home',
-        currentProvince: null,
-        currentDistrict: null,
-        currentBuildingName: null,
-        currentTag: null,
+  state: {
+    currentView: 'home',
+    currentProvince: null,
+    currentDistrict: null,
+    currentBuildingName: null,
+    currentTag: null,
+    currentTrailId: null,
+    currentTrailType: null,
+    theme: localStorage.getItem('theme') || 'light'
+  },
 
-        theme: localStorage.getItem('theme') || 'light'
+  _cache: {
+    buildingCards: new Map(),
+    searchCards: new Map(),
+    tagStyles: new Map(),
+    protectionBadges: new Map(),
+    truncatedTexts: new Map(),
+    buildingByName: new Map(),
+    provinceData: new Map(),
+    jsonData: new Map()
+  },
+
+  _cacheLimits: {
+    buildingCards: 200,
+    searchCards: 100,
+    tagStyles: 100,
+    protectionBadges: 50,
+    truncatedTexts: 500,
+    provinceData: 50,
+    buildingByName: 200,
+    jsonData: 50
+  },
+
+  provinceStyles: {
+    'beijing': { icon: '⛩️', color: '#e74c3c', bgColor: '#fdf2f2' },
+    'tianjin': { icon: '⚓', color: '#3498db', bgColor: '#ebf5fb' },
+    'hebei': { icon: '🏔️', color: '#2ecc71', bgColor: '#eafaf1' },
+    'shanxi': { icon: '🏛️', color: '#9b59b6', bgColor: '#f5eef8' },
+    'neimenggu': { icon: '🌿', color: '#1abc9c', bgColor: '#e8f8f5' },
+    'liaoning': { icon: '⚙️', color: '#34495e', bgColor: '#f2f4f6' },
+    'jilin': { icon: '🌲', color: '#16a085', bgColor: '#e8f6f3' },
+    'heilongjiang': { icon: '❄️', color: '#2980b9', bgColor: '#eaf2f8' },
+    'shanghai': { icon: '🌆', color: '#e67e22', bgColor: '#fef5e7' },
+    'jiangsu': { icon: '🌊', color: '#3498db', bgColor: '#ebf5fb' },
+    'zhejiang': { icon: '🏞️', color: '#27ae60', bgColor: '#eafaf1' },
+    'anhui': { icon: '📜', color: '#8e44ad', bgColor: '#f5eef8' },
+    'fujian': { icon: '🏝️', color: '#d35400', bgColor: '#fdf2e9' },
+    'jiangxi': { icon: '🌸', color: '#c0392b', bgColor: '#fdedec' },
+    'shandong': { icon: '🌅', color: '#2980b9', bgColor: '#eaf2f8' },
+    'henan': { icon: '🏺', color: '#f39c12', bgColor: '#fef9e7' },
+    'hubei': { icon: '🌉', color: '#e74c3c', bgColor: '#fdf2f2' },
+    'hunan': { icon: '🌶️', color: '#16a085', bgColor: '#e8f6f3' },
+    'guangdong': { icon: '🌺', color: '#e67e22', bgColor: '#fef5e7' },
+    'guangxi': { icon: '🌴', color: '#27ae60', bgColor: '#eafaf1' },
+    'hainan': { icon: '🥥', color: '#2ecc71', bgColor: '#eafaf1' },
+    'chongqing': { icon: '🍲', color: '#9b59b6', bgColor: '#f5eef8' },
+    'sichuan': { icon: '🐼', color: '#34495e', bgColor: '#f2f4f6' },
+    'guizhou': { icon: '🌁', color: '#1abc9c', bgColor: '#e8f8f5' },
+    'yunnan': { icon: '🦚', color: '#e74c3c', bgColor: '#fdf2f2' },
+    'xizang': { icon: '🏔️', color: '#3498db', bgColor: '#ebf5fb' },
+    'shaanxi': { icon: '🐴', color: '#8e44ad', bgColor: '#f5eef8' },
+    'gansu': { icon: '🏜️', color: '#f39c12', bgColor: '#fef9e7' },
+    'qinghai': { icon: '💧', color: '#2980b9', bgColor: '#eaf2f8' },
+    'ningxia': { icon: '🌾', color: '#27ae60', bgColor: '#eafaf1' },
+    'xinjiang': { icon: '🍇', color: '#9b59b6', bgColor: '#f5eef8' },
+    'taiwan': { icon: '🏝️', color: '#e67e22', bgColor: '#fef5e7' },
+    'hongkong': { icon: '🌃', color: '#34495e', bgColor: '#f2f4f6' },
+    'macau': { icon: '🎰', color: '#c0392b', bgColor: '#fdedec' },
+    'cross': { icon: '🗺️', color: '#16a085', bgColor: '#e8f6f3' }
+  },
+
+  colorPalette: [
+    { color: '#B22222', bg: '#FDF2F2' },
+    { color: '#8B4513', bg: '#FDF8F3' },
+    { color: '#2F4F4F', bg: '#F0F5F5' },
+    { color: '#1E3A5F', bg: '#F0F4F8' },
+    { color: '#DAA520', bg: '#FDF9F0' },
+    { color: '#708090', bg: '#F5F5F7' }
+  ],
+
+  tagStyles: {
+    '古建筑': { icon: '🏛️' }, '古遗址': { icon: '🏺' }, '古城遗址': { icon: '🏚️' },
+    '古墓葬': { icon: '⚰️' }, '陵墓': { icon: '🪦' }, '名人墓': { icon: '👤' }, '壁画墓': { icon: '🎨' },
+    '石窟寺': { icon: '🪨' }, '石刻': { icon: '🗿' }, '造像': { icon: '🙏' }, '碑刻': { icon: '📜' },
+    '经幢': { icon: '🗼' }, '彩塑': { icon: '🤲' }, '雕塑': { icon: '🗽' }, '壁画': { icon: '🖼️' },
+    '岩画': { icon: '🪨' }, '佛教艺术': { icon: '☸️' },
+    '佛教寺院': { icon: '🛕' }, '塔': { icon: '🗼' }, '藏传佛教': { icon: '🪷' },
+    '道教建筑': { icon: '☯️' }, '教堂': { icon: '⛪' }, '清真寺': { icon: '🕌' },
+    '祭坛': { icon: '🕯️' }, '关帝庙': { icon: '⚔️' }, '城隍庙': { icon: '🏛️' },
+    '妈祖庙': { icon: '🌊' }, '文昌阁': { icon: '⭐' },
+    '革命遗址': { icon: '🚩' }, '红色旅游': { icon: '⭐' },
+    '近现代史迹': { icon: '🏛️' }, '中西合璧': { icon: '🤝' }, '纪念建筑': { icon: '🗽' },
+    '博物馆': { icon: '🏛️' }, '名人故居': { icon: '🏠' },
+    '军事遗址': { icon: '⚔️' }, '关隘': { icon: '🏔️' }, '长城': { icon: '🐉' },
+    '城墙': { icon: '🧱' }, '烽燧': { icon: '🔥' }, '炮台': { icon: '💣' },
+    '工业遗产': { icon: '🏭' }, '桥梁': { icon: '🌉' }, '水利工程': { icon: '💧' },
+    '运河': { icon: '🌊' }, '码头': { icon: '⚓' }, '天文': { icon: '🔭' },
+    '驿站': { icon: '📮' }, '栈道': { icon: '🪜' },
+    '宫殿': { icon: '👑' }, '园林': { icon: '🌿' }, '衙署': { icon: '⚖️' },
+    '民居': { icon: '🏘️' }, '会馆': { icon: '🏤' }, '书院': { icon: '📚' },
+    '祠堂': { icon: '👪' }, '文庙': { icon: '🎓' }, '牌坊': { icon: '⛩️' },
+    '四合院': { icon: '🏚️' }, '古村落': { icon: '🏡' }, '历史文化街区': { icon: '🏙️' },
+    '戏台': { icon: '🎭' }, '影壁': { icon: '🧱' }, '钟鼓楼': { icon: '🥁' },
+    '窑址': { icon: '🔥' }, '农业遗产': { icon: '🌾' }, '活态遗产': { icon: '🔄' },
+    '文化景观': { icon: '🌄' }, '世界遗产': { icon: '🌟' }, '自然遗产': { icon: '🌲' },
+    '丝绸之路': { icon: '🐪' }, '澳门历史城区': { icon: '🏛️' },
+    '徽派建筑': { icon: '🏘️' }, '晋商建筑': { icon: '💰' }, '岭南建筑': { icon: '🏠' },
+    '闽南建筑': { icon: '🏡' }, '客家建筑': { icon: '🏘️' }, '土楼': { icon: '🟤' },
+    '窑洞': { icon: '🕳️' }, '碉楼': { icon: '🗼' }, '蒙古包': { icon: '⛺' },
+    '傣族建筑': { icon: '🏠' }, '侗族建筑': { icon: '🏘️' }, '苗族建筑': { icon: '🏠' },
+    '藏式建筑': { icon: '🏔️' }, '古井': { icon: '🕳️' }, '古树名木': { icon: '🌳' },
+    '龙山文化': { icon: '🏺' }, '仰韶文化': { icon: '🏺' }, '大汶口文化': { icon: '🏺' },
+    '良渚文化': { icon: '🏺' }, '红山文化': { icon: '🏺' }, '马家窑文化': { icon: '🏺' },
+    '齐家文化': { icon: '🏺' }, '河姆渡文化': { icon: '🏺' },
+    '彝族建筑': { icon: '🏠' }, '土家族建筑': { icon: '🏠' },
+    '维吾尔族建筑': { icon: '🏠' }, '回族建筑': { icon: '🏠' },
+    '白族建筑': { icon: '🏠' }, '纳西族建筑': { icon: '🏠' },
+    '龙王庙': { icon: '🐉' }, '岳王庙': { icon: '⚔️' }, '禹王庙': { icon: '💧' },
+    '东岳庙': { icon: '⛰️' }, '真武庙': { icon: '⭐' },
+    '古建筑群': { icon: '🏘️' }, '古塔': { icon: '🗼' }, '古寺': { icon: '🛕' },
+    '古桥': { icon: '🌉' }, '古墓': { icon: '⚰️' }, '古街': { icon: '🏙️' },
+    '古战场': { icon: '⚔️' }, '古城': { icon: '🏚️' }, '古庙': { icon: '🛕' },
+    '古亭': { icon: '⛩️' }, '古楼': { icon: '🏯' }, '古宅': { icon: '🏚️' },
+    '大自然': { icon: '🌿' }, '海洋': { icon: '🌊' }, '河流': { icon: '💧' },
+    '岛屿': { icon: '🏝️' }, '山川': { icon: '⛰️' }, '森林': { icon: '🌲' },
+    '湖泊': { icon: '🏞️' }, '岛屿海岸': { icon: '🏖️' },
+  },
+
+  buildingCategories: {
+    ancient: {
+      label: '古建筑',
+      key: 'ancient',
+      icon: '🏛️',
+      color: '#8B0000',
+      bgColor: '#FFF0F0',
+      markerColor: '#C0392B',
+      size: 20,
+      matchTypes: ['古建筑']
     },
-
-    // 缓存机制
-    _cache: {
-        buildingCards: new Map(),
-        tagStyles: new Map(),
-        protectionBadges: new Map(),
-        truncatedTexts: new Map(),
-        buildingByName: new Map()
+    ruins: {
+      label: '古遗址',
+      key: 'ruins',
+      icon: '🏺',
+      color: '#CD853F',
+      bgColor: '#FFF8F0',
+      markerColor: '#D2691E',
+      size: 20,
+      matchTypes: ['古遗址']
     },
-
-    // 缓存大小限制
-    _cacheLimits: {
-        buildingCards: 200,
-        tagStyles: 100,
-        protectionBadges: 50,
-        truncatedTexts: 500
+    tomb: {
+      label: '古墓葬',
+      key: 'tomb',
+      icon: '⚰️',
+      color: '#708090',
+      bgColor: '#F5F5F5',
+      markerColor: '#5F6B7A',
+      size: 20,
+      matchTypes: ['古墓葬']
     },
-
-    // 省份图标和颜色配置
-    provinceStyles: {
-        'beijing': { icon: '⛩️', color: '#e74c3c', bgColor: '#fdf2f2' },
-        'tianjin': { icon: '⚓', color: '#3498db', bgColor: '#ebf5fb' },
-        'hebei': { icon: '🏔️', color: '#2ecc71', bgColor: '#eafaf1' },
-        'shanxi': { icon: '🏛️', color: '#9b59b6', bgColor: '#f5eef8' },
-        'neimenggu': { icon: '🌿', color: '#1abc9c', bgColor: '#e8f8f5' },
-        'liaoning': { icon: '⚙️', color: '#34495e', bgColor: '#f2f4f6' },
-        'jilin': { icon: '🌲', color: '#16a085', bgColor: '#e8f6f3' },
-        'heilongjiang': { icon: '❄️', color: '#2980b9', bgColor: '#eaf2f8' },
-        'shanghai': { icon: '🌆', color: '#e67e22', bgColor: '#fef5e7' },
-        'jiangsu': { icon: '🌊', color: '#3498db', bgColor: '#ebf5fb' },
-        'zhejiang': { icon: '🏞️', color: '#27ae60', bgColor: '#eafaf1' },
-        'anhui': { icon: '📜', color: '#8e44ad', bgColor: '#f5eef8' },
-        'fujian': { icon: '🏝️', color: '#d35400', bgColor: '#fdf2e9' },
-        'jiangxi': { icon: '🌸', color: '#c0392b', bgColor: '#fdedec' },
-        'shandong': { icon: '🌅', color: '#2980b9', bgColor: '#eaf2f8' },
-        'henan': { icon: '🏺', color: '#f39c12', bgColor: '#fef9e7' },
-        'hubei': { icon: '🌉', color: '#e74c3c', bgColor: '#fdf2f2' },
-        'hunan': { icon: '🌶️', color: '#16a085', bgColor: '#e8f6f3' },
-        'guangdong': { icon: '🌺', color: '#e67e22', bgColor: '#fef5e7' },
-        'guangxi': { icon: '🌴', color: '#27ae60', bgColor: '#eafaf1' },
-        'hainan': { icon: '🥥', color: '#2ecc71', bgColor: '#eafaf1' },
-        'chongqing': { icon: '🍲', color: '#9b59b6', bgColor: '#f5eef8' },
-        'sichuan': { icon: '🐼', color: '#34495e', bgColor: '#f2f4f6' },
-        'guizhou': { icon: '🌁', color: '#1abc9c', bgColor: '#e8f8f5' },
-        'yunnan': { icon: '🦚', color: '#e74c3c', bgColor: '#fdf2f2' },
-        'xizang': { icon: '🏔️', color: '#3498db', bgColor: '#ebf5fb' },
-        'shaanxi': { icon: '🐴', color: '#8e44ad', bgColor: '#f5eef8' },
-        'gansu': { icon: '🏜️', color: '#f39c12', bgColor: '#fef9e7' },
-        'qinghai': { icon: '💧', color: '#2980b9', bgColor: '#eaf2f8' },
-        'ningxia': { icon: '🌾', color: '#27ae60', bgColor: '#eafaf1' },
-        'xinjiang': { icon: '🍇', color: '#9b59b6', bgColor: '#f5eef8' },
-        'taiwan': { icon: '🏝️', color: '#e67e22', bgColor: '#fef5e7' },
-        'hongkong': { icon: '🌃', color: '#34495e', bgColor: '#f2f4f6' },
-        'macau': { icon: '🎰', color: '#c0392b', bgColor: '#fdedec' },
-        'cross': { icon: '🗺️', color: '#16a085', bgColor: '#e8f6f3' }
+    grotto: {
+      label: '石窟寺及石刻',
+      key: 'grotto',
+      icon: '🧘',
+      color: '#9370DB',
+      bgColor: '#F5F0FF',
+      markerColor: '#7B68EE',
+      size: 20,
+      matchTypes: ['石窟寺及石刻']
     },
-
-    // 标签图标和颜色配置 - 丰富的图标库，确保不重复
-    // 中国古建筑配色方案
-    colorPalette: [
-        { color: '#B22222', bg: '#FDF2F2' }, // 朱红
-        { color: '#8B4513', bg: '#FDF8F3' }, // 赭石
-        { color: '#2F4F4F', bg: '#F0F5F5' }, // 墨绿
-        { color: '#1E3A5F', bg: '#F0F4F8' }, // 黛蓝
-        { color: '#DAA520', bg: '#FDF9F0' }, // 藤黄
-        { color: '#708090', bg: '#F5F5F7' }  // 青灰
-    ],
-
-    tagStyles: {
-        // 建筑类型
-        '古建筑': { icon: '🏮' },
-        '近代建筑': { icon: '🏛️' },
-        '现代建筑': { icon: '🏢' },
-
-        // 宗教建筑
-        '寺庙': { icon: '🛕' },
-        '教堂': { icon: '⛪' },
-        '清真寺': { icon: '🕌' },
-        '道观': { icon: '☯️' },
-        '宗教建筑': { icon: '🕍' },
-        
-        // 皇家/官式建筑
-        '宫殿': { icon: '👑' },
-        '衙署': { icon: '⚖️' },
-        '关隘': { icon: '🏔️' },
-        
-        // 园林景观
-        '园林': { icon: '🌿' },
-        '风景建筑': { icon: '🏞️' },
-        '游憩建筑': { icon: '🎋' },
-        
-        // 墓葬遗址
-        '陵墓': { icon: '🪦' },
-        '古墓葬': { icon: '⚰️' },
-        '遗址': { icon: '🏺' },
-        '古遗址': { icon: '🗿' },
-        '墓葬': { icon: '🪦' },
-        
-        // 石刻艺术
-        '石窟': { icon: '🧘' },
-        '石窟寺': { icon: '🪨' },
-        '石刻': { icon: '🗿' },
-        '石刻艺术': { icon: '✨' },
-        '雕塑': { icon: '🎭' },
-        '壁画': { icon: '🎨' },
-        
-        // 塔阁亭台
-        '塔': { icon: '🗼' },
-        '楼阁': { icon: '🏯' },
-        '亭台': { icon: '⛩️' },
-        '钟鼓楼': { icon: '🥁' },
-        '牌坊': { icon: '🎋' },
-        
-        // 交通设施
-        '桥梁': { icon: '🌉' },
-        '城墙': { icon: '🧱' },
-        '长城': { icon: '🐉' },
-        '烽燧': { icon: '🔥' },
-        '驿站': { icon: '📮' },
-        '码头': { icon: '⚓' },
-        '运河': { icon: '🌊' },
-        
-        // 水利设施
-        '水利': { icon: '💧' },
-        '水利工程': { icon: '🚰' },
-        
-        // 教育文化
-        '书院': { icon: '📚' },
-        '学堂': { icon: '🎓' },
-        '教育建筑': { icon: '📖' },
-        '博物馆': { icon: '🗿' },
-        
-        // 居住建筑
-        '民居': { icon: '🏠' },
-        '居住建筑': { icon: '🏘️' },
-        '传统村落': { icon: '🏡' },
-        '四合院': { icon: '🏚️' },
-        '会馆': { icon: '🏤' },
-        '祠堂': { icon: '👪' },
-        
-        // 商业金融
-        '商业建筑': { icon: '🏪' },
-        '金融建筑': { icon: '🏦' },
-        '工业建筑': { icon: '🏭' },
-        '工业遗产': { icon: '⚙️' },
-        
-        // 医疗公共
-        '医疗建筑': { icon: '🏥' },
-        '公共建筑': { icon: '🏬' },
-        
-        // 祭祀纪念
-        '祭坛': { icon: '🕯️' },
-        '纪念建筑': { icon: '🗽' },
-        '影壁': { icon: '🧱' },
-        '照壁': { icon: '🪞' },
-        
-        // 天文科技
-        '天文': { icon: '🔭' },
-        
-        // 遗产类型
-        '世界遗产': { icon: '🌟' },
-        '自然遗产': { icon: '🌲' },
-        '文化景观': { icon: '🌄' },
-        '混合遗产': { icon: '🗺️' },
-        
-        // 历史文化
-        '历史文化街区': { icon: '🏙️' },
-        '名人故居': { icon: '👤' },
-        '革命遗址': { icon: '✊' },
-        '红色旅游': { icon: '⭐' },
-        '爱国主义教育': { icon: '❤️' },
-        '历史纪念': { icon: '📜' },
-
-        // 特色类型
-        '古建筑群': { icon: '🏘️' },
-        '广场建筑': { icon: '⛲' },
-        '意式建筑': { icon: '🏫' },
-        '辽代艺术': { icon: '🎨' },
-        '百货商场': { icon: '🛍️' },
-        '海洋文化': { icon: '🐚' },
-        '近代工业': { icon: '⚙️' },
-        '思想家': { icon: '💭' },
-        '历史遗产': { icon: '📜' }
+    modern: {
+      label: '近现代重要史迹及代表性建筑',
+      key: 'modern',
+      icon: '🏛️',
+      color: '#4169E1',
+      bgColor: '#F0F5FF',
+      markerColor: '#2E5CB8',
+      size: 20,
+      matchTypes: ['近现代重要史迹及代表性建筑']
     },
-
-    // 获取标签样式（带缓存）
-    getTagStyle(tagName, index) {
-        // 创建缓存键
-        const cacheKey = `${tagName}_${index % this.colorPalette.length}`;
-
-        // 检查缓存
-        if (this._cache.tagStyles.has(cacheKey)) {
-            return this._cache.tagStyles.get(cacheKey);
-        }
-
-        const style = this.tagStyles[tagName] || { icon: '🏷️' };
-        const palette = this.colorPalette[index % this.colorPalette.length];
-        const result = {
-            ...style,
-            color: palette.color,
-            bg: palette.bg
-        };
-
-        // 存入缓存，限制缓存大小
-        if (this._cache.tagStyles.size >= this._cacheLimits.tagStyles) {
-            const firstKey = this._cache.tagStyles.keys().next().value;
-            this._cache.tagStyles.delete(firstKey);
-        }
-        this._cache.tagStyles.set(cacheKey, result);
-
-        return result;
-    },
-
-    // 初始化
-    init() {
-        this.setupTheme();
-        this.setupEventListeners();
-        this.setupNavigation();
-        this.render();
-        this._scheduleBackgroundPreload();
-    },
-
-    _scheduleBackgroundPreload() {
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => this._preloadAllData(), { timeout: 1500 });
-        } else {
-            setTimeout(() => this._preloadAllData(), 100);
-        }
-    },
-
-    // 数据加载完成回调
-    _onDataLoadedCallbacks: [],
-
-    // 注册数据加载完成回调
-    onDataLoaded(callback) {
-        if (this._allDataLoaded) {
-            callback();
-        } else {
-            this._onDataLoadedCallbacks.push(callback);
-        }
-    },
-
-    // 后台预加载数据 - 优先加载常用省份，其他按需加载
-    async _preloadAllData() {
-        // 优先加载的省份（数据量大且常用）
-        const priorityProvinces = [
-            'beijing', 'shanxi', 'henan', 'shaanxi', 'sichuan',
-            'jiangsu', 'zhejiang', 'shandong', 'hebei'
-        ];
-
-        // 先加载优先省份
-        for (let i = 0; i < priorityProvinces.length; i += 2) {
-            const batch = priorityProvinces.slice(i, i + 2);
-            await Promise.all(batch.map(id => this.loadProvinceData(id)));
-            this._onDataLoadedCallbacks.forEach(cb => {
-                try { cb(); } catch (e) {}
-            });
-        }
-
-        // 标记核心数据已加载（足够标签和搜索使用）
-        this._coreDataLoaded = true;
-
-        // 使用 requestIdleCallback 在浏览器空闲时加载剩余数据
-        const loadRemaining = async () => {
-            const remaining = Object.keys(this.dataModules).filter(
-                id => !priorityProvinces.includes(id) && id !== 'cross'
-            );
-            for (let i = 0; i < remaining.length; i += 3) {
-                const batch = remaining.slice(i, i + 3);
-                await Promise.all(batch.map(id => this.loadProvinceData(id)));
-                this._onDataLoadedCallbacks.forEach(cb => {
-                    try { cb(); } catch (e) {}
-                });
-            }
-            this._allDataLoaded = true;
-            this._onDataLoadedCallbacks.forEach(cb => {
-                try { cb(); } catch (e) {}
-            });
-            this._onDataLoadedCallbacks = [];
-        };
-
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => loadRemaining(), { timeout: 5000 });
-        } else {
-            setTimeout(loadRemaining, 2000);
-        }
-    },
-
-    // 设置主题
-    setupTheme() {
-        document.documentElement.setAttribute('data-theme', this.state.theme);
-    },
-
-    // 切换主题
-    toggleTheme() {
-        this.state.theme = this.state.theme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', this.state.theme);
-        localStorage.setItem('theme', this.state.theme);
-    },
-
-    // 设置事件监听
-    setupEventListeners() {
-        // 主题切换
-        document.querySelector('.theme-toggle')?.addEventListener('click', () => {
-            this.toggleTheme();
-        });
-
-        // 移动端导航切换
-        document.querySelector('.nav-toggle')?.addEventListener('click', () => {
-            document.querySelector('.nav-menu')?.classList.toggle('active');
-        });
-
-        // 导航链接点击事件委托（处理强制刷新）
-        document.addEventListener('click', (e) => {
-            const navLink = e.target.closest('.nav-link');
-            if (navLink && navLink.getAttribute('data-force-render') === 'true') {
-                const href = navLink.getAttribute('href');
-                if (href && window.location.hash === href) {
-                    e.preventDefault();
-                    this.parseHash();
-                    this.render();
-                }
-            }
-        });
-
-        // 建筑卡片点击事件委托
-        document.addEventListener('click', (e) => {
-            const card = e.target.closest('.building-card');
-            if (card) {
-                e.preventDefault();
-                e.stopPropagation();
-                const hashUrl = card.getAttribute('data-hash');
-                if (hashUrl) {
-                    window.location.hash = hashUrl;
-                }
-            }
-        });
-    },
-
-    // 设置导航
-    setupNavigation() {
-        window.addEventListener('hashchange', () => {
-            this.parseHash();
-            this.render();
-        });
-        this.parseHash();
-    },
-
-    // 解析URL hash
-    parseHash() {
-        const hash = window.location.hash.slice(1) || 'home';
-        const parts = hash.split('/');
-
-        this.state.currentView = parts[0] || 'home';
-        this.state.currentProvince = null;
-        this.state.currentDistrict = null;
-        this.state.currentBuildingName = null;
-        this.state.currentTag = null;
-        this.state.currentTopic = null;
-        this.state.currentRoute = null;
-        this.state.currentGame = null;
-
-        // 处理建筑详情页URL格式
-        if (this.state.currentView === 'building' && parts[1]) {
-            const fullPath = decodeURIComponent(parts[1]);
-            this.state.currentBuildingName = fullPath;
-        } else if (this.state.currentView === 'province' && parts[1]) {
-            this.state.currentProvince = parts[1];
-            if (parts[2]) {
-                // 如果有三个部分 (province/tianjin/heping)，则是区县页面
-                this.state.currentDistrict = parts[2];
-                this.state.currentView = 'district';
-            }
-        } else if (this.state.currentView === 'tag' && parts[1]) {
-            this.state.currentTag = decodeURIComponent(parts[1]);
-        } else if (this.state.currentView === 'story' && parts[1]) {
-            this.state.currentTopic = decodeURIComponent(parts[1]);
-        } else if (this.state.currentView === 'route' && parts[1]) {
-            this.state.currentRoute = decodeURIComponent(parts[1]);
-        } else if (this.state.currentView === 'game' && parts[1]) {
-            this.state.currentGame = decodeURIComponent(parts[1]);
-        }
-
-        // 关闭移动端菜单
-        document.querySelector('.nav-menu')?.classList.remove('active');
-    },
-
-    // 数据模块映射表
-    dataModules: {
-        'beijing': 'BeijingData',
-        'tianjin': 'TianjinData',
-        'hebei': 'HebeiData',
-        'shanxi': 'ShanxiData',
-        'neimenggu': 'NeimengguData',
-        'liaoning': 'LiaoningData',
-        'jilin': 'JilinData',
-        'heilongjiang': 'HeilongjiangData',
-        'shanghai': 'ShanghaiData',
-        'jiangsu': 'JiangsuData',
-        'zhejiang': 'ZhejiangData',
-        'anhui': 'AnhuiData',
-        'fujian': 'FujianData',
-        'jiangxi': 'JiangxiData',
-        'shandong': 'ShandongData',
-        'henan': 'HenanData',
-        'hubei': 'HubeiData',
-        'hunan': 'HunanData',
-        'guangdong': 'GuangdongData',
-        'guangxi': 'GuangxiData',
-        'hainan': 'HainanData',
-        'chongqing': 'ChongqingData',
-        'sichuan': 'SichuanData',
-        'guizhou': 'GuizhouData',
-        'yunnan': 'YunnanData',
-        'xizang': 'XizangData',
-        'shaanxi': 'ShaanxiData',
-        'gansu': 'GansuData',
-        'qinghai': 'QinghaiData',
-        'ningxia': 'NingxiaData',
-        'xinjiang': 'XinjiangData',
-        'taiwan': 'TaiwanData',
-        'hongkong': 'HongKongData',
-        'macau': 'MacauData',
-        'cross': 'CrossProvinceData'
-    },
-
-    // 已加载的模块
-    _loadedModules: new Set(),
-
-    // 脚本文件名映射（当 provinceId 和文件名不一致时使用）
-    scriptFileMap: {
-        'cross': 'cross-province'
-    },
-
-    // 按需加载省份数据
-    async loadProvinceData(provinceId) {
-        const moduleName = this.dataModules[provinceId];
-        if (!moduleName) return null;
-
-        // 如果已经加载过，直接返回
-        if (this._loadedModules.has(provinceId)) {
-            return window[moduleName];
-        }
-
-        // 如果已经在window中，标记为已加载
-        if (typeof window[moduleName] !== 'undefined') {
-            this._loadedModules.add(provinceId);
-            return window[moduleName];
-        }
-
-        // 动态加载脚本
-        const fileName = this.scriptFileMap[provinceId] || provinceId;
-        try {
-            await this._loadScript(`data/${fileName}.js?v=3`);
-            this._loadedModules.add(provinceId);
-            return window[moduleName];
-        } catch (error) {
-            return null;
-        }
-    },
-
-    // 加载单个脚本
-    _loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    },
-
-    // 加载多个省份数据
-    async loadProvinces(provinceIds) {
-        const promises = provinceIds.map(id => this.loadProvinceData(id));
-        await Promise.all(promises);
-    },
-
-    _resolveBuildingRef(buildingRef, extraModule) {
-        if (!buildingRef) return null;
-        if (buildingRef.embedded) return buildingRef.embedded;
-
-        if (extraModule && typeof extraModule.getBuildingByName === 'function') {
-            const b = extraModule.getBuildingByName(buildingRef.name);
-            if (b) return b;
-        }
-
-        const moduleName = this.dataModules[buildingRef.province];
-        if (moduleName && typeof window[moduleName] !== 'undefined') {
-            const module = window[moduleName];
-            if (module && typeof module.getBuildingByName === 'function') {
-                return module.getBuildingByName(buildingRef.name);
-            }
-        }
-
-        return null;
-    },
-
-    // 根据完整路径查找建筑（带名称索引缓存）
-    findBuildingByFullPath(fullPath) {
-        if (this._cache.buildingByName.has(fullPath)) {
-            return this._cache.buildingByName.get(fullPath);
-        }
-
-        let building = null;
-
-        for (const moduleName of Object.values(this.dataModules)) {
-            if (typeof window[moduleName] !== 'undefined') {
-                const module = window[moduleName];
-                if (module && typeof module.getBuildingByName === 'function') {
-                    building = module.getBuildingByName(fullPath);
-                    if (building) break;
-                }
-            }
-        }
-
-        if (!building) {
-            for (const storyMeta of StoryManager.getAllStories()) {
-                const module = window[storyMeta.moduleName];
-                if (module && typeof module.getBuildingByName === 'function') {
-                    building = module.getBuildingByName(fullPath);
-                    if (building) break;
-                }
-            }
-        }
-
-        if (!building) {
-            for (const routeMeta of RouteManager.getAllRoutes()) {
-                const module = window[routeMeta.moduleName];
-                if (module && typeof module.getBuildingByName === 'function') {
-                    building = module.getBuildingByName(fullPath);
-                    if (building) break;
-                }
-            }
-        }
-
-        if (!building) {
-            for (const gameMeta of GameManager.getAllGames()) {
-                const module = window[gameMeta.moduleName];
-                if (module && typeof module.getBuildingByName === 'function') {
-                    building = module.getBuildingByName(fullPath);
-                    if (building) break;
-                }
-            }
-        }
-
-        if (building) {
-            this._cache.buildingByName.set(fullPath, building);
-        }
-
-        return building;
-    },
-
-    // 获取省份样式
-    getProvinceStyle(provinceId) {
-        return this.provinceStyles[provinceId] || { icon: '📍', color: '#3498db', bgColor: '#ebf5fb' };
-    },
-
-    // 生成建筑的hash URL
-    generateBuildingHash(building) {
-        // 使用中文省份名称而非拼音
-        const provinceName = ProvincesData.getProvinceById(building.provinceId)?.name || building.province;
-        const fullPath = `${provinceName}${building.districtName}${building.name}`;
-        return `building/${encodeURIComponent(fullPath)}`;
-    },
-
-    // 导航到建筑详情
-    navigateToBuilding(buildingName) {
-        const hashUrl = `building/${encodeURIComponent(buildingName)}`;
-        window.location.hash = hashUrl;
-    },
-
-    // 生成保护级别标识HTML（通用方法，避免重复代码）
-    generateProtectionBadge(building) {
-        // 创建缓存键
-        const cacheKey = `${building.worldHeritage}_${building.worldHeritageYear}_${building.protectionLevel}_${building.protectionBatch}`;
-
-        // 检查缓存
-        if (this._cache.protectionBadges.has(cacheKey)) {
-            return this._cache.protectionBadges.get(cacheKey);
-        }
-
-        let result = '';
-        if (building.worldHeritage) {
-            result = `<span class="protection-badge heritage">🌍 世界遗产${building.worldHeritageYear ? '·' + building.worldHeritageYear : ''}</span>`;
-        } else if (building.protectionLevel === '全国重点文物保护单位') {
-            result = `<span class="protection-badge national">${building.protectionBatch || '全国重点'}</span>`;
-        }
-
-        // 存入缓存，限制缓存大小
-        if (this._cache.protectionBadges.size >= this._cacheLimits.protectionBadges) {
-            const firstKey = this._cache.protectionBadges.keys().next().value;
-            this._cache.protectionBadges.delete(firstKey);
-        }
-        this._cache.protectionBadges.set(cacheKey, result);
-
-        return result;
-    },
-
-    // 截断文本（带缓存）
-    truncateText(text, maxLength, suffix = '...') {
-        if (!text) return '';
-        if (text.length <= maxLength) return text;
-
-        // 创建缓存键
-        const cacheKey = `${text}_${maxLength}_${suffix}`;
-
-        // 检查缓存
-        if (this._cache.truncatedTexts.has(cacheKey)) {
-            return this._cache.truncatedTexts.get(cacheKey);
-        }
-
-        const result = text.substring(0, maxLength) + suffix;
-
-        // 存入缓存，限制缓存大小
-        if (this._cache.truncatedTexts.size >= this._cacheLimits.truncatedTexts) {
-            const firstKey = this._cache.truncatedTexts.keys().next().value;
-            this._cache.truncatedTexts.delete(firstKey);
-        }
-        this._cache.truncatedTexts.set(cacheKey, result);
-
-        return result;
-    },
-
-    // 主渲染函数
-    render() {
-        this.updateBreadcrumb();
-        this.updateActiveNav();
-
-        const mainContent = document.getElementById('mainContent');
-        if (!mainContent) return;
-
-        window.scrollTo(0, 0);
-
-        switch (this.state.currentView) {
-            case 'home':
-                this.renderHome(mainContent);
-                break;
-            case 'provinces':
-                this.renderProvinces(mainContent);
-                break;
-            case 'province':
-                this.renderProvince(mainContent, this.state.currentProvince);
-                break;
-            case 'district':
-                this.renderDistrict(mainContent, this.state.currentProvince, this.state.currentDistrict);
-                break;
-            case 'building':
-                this.renderBuilding(mainContent, this.state.currentBuildingName);
-                break;
-            case 'tags':
-                this.renderTags(mainContent);
-                break;
-            case 'tag':
-                this.renderTagResults(mainContent, this.state.currentTag);
-                break;
-            case 'search':
-                this.renderSearchPage(mainContent);
-                break;
-            case 'cross':
-                this.renderCrossProvince(mainContent);
-                break;
-            case 'stories':
-                this.renderTopics(mainContent);
-                break;
-            case 'story':
-                this.renderTopicDetail(mainContent, this.state.currentTopic);
-                break;
-            case 'routes':
-                this.renderRoutes(mainContent);
-                break;
-            case 'route':
-                this.renderRouteDetail(mainContent, this.state.currentRoute);
-                break;
-            case 'games':
-                this.renderGameList(mainContent);
-                break;
-            case 'game':
-                this.renderGameDetail(mainContent, this.state.currentGame);
-                break;
-            default:
-                this.renderHome(mainContent);
-        }
-    },
-
-    // 更新面包屑导航
-    updateBreadcrumb() {
-        const breadcrumbList = document.getElementById('breadcrumbList');
-        if (!breadcrumbList) return;
-
-        let items = [{ name: '🏠 首页', hash: 'home' }];
-
-        if (this.state.currentView === 'provinces') {
-            items.push({ name: '🗺️ 省份', hash: 'provinces' });
-        } else if (this.state.currentView === 'province' && this.state.currentProvince) {
-            items.push({ name: '🗺️ 省份', hash: 'provinces' });
-            const province = ProvincesData.getProvinceById(this.state.currentProvince);
-            if (province) {
-                const style = this.getProvinceStyle(this.state.currentProvince);
-                items.push({ name: `${style.icon} ${province.name}`, hash: `province/${province.id}` });
-            }
-        } else if (this.state.currentView === 'district' && this.state.currentProvince && this.state.currentDistrict) {
-            items.push({ name: '🗺️ 省份', hash: 'provinces' });
-            const province = ProvincesData.getProvinceById(this.state.currentProvince);
-            if (province) {
-                const provinceStyle = this.getProvinceStyle(this.state.currentProvince);
-                items.push({ name: `${provinceStyle.icon} ${province.name}`, hash: `province/${province.id}` });
-                const district = this.getDistrictData(this.state.currentProvince, this.state.currentDistrict);
-                if (district) {
-                    items.push({ name: `📍 ${district.name}`, hash: `province/${province.id}/${district.id}` });
-                }
-            }
-        } else if (this.state.currentView === 'building' && this.state.currentBuildingName) {
-            const building = this.findBuildingByFullPath(this.state.currentBuildingName);
-            if (building) {
-                items.push({ name: '🗺️ 省份', hash: 'provinces' });
-                const provinceStyle = this.getProvinceStyle(building.provinceId);
-                items.push({ name: `${provinceStyle.icon} ${building.province}`, hash: `province/${building.provinceId}` });
-                items.push({ name: `📍 ${building.districtName}`, hash: `province/${building.provinceId}/${building.district}` });
-                items.push({ name: `🏛️ ${building.name}`, hash: this.generateBuildingHash(building), active: true });
-            }
-        } else if (this.state.currentView === 'tags') {
-            items.push({ name: '🏷️ 标签', hash: 'tags' });
-        } else if (this.state.currentView === 'tag') {
-            items.push({ name: '🏷️ 标签', hash: 'tags' });
-            const tagStyle = this.getTagStyle(this.state.currentTag, 0);
-            items.push({ name: `${tagStyle.icon} ${this.state.currentTag}`, hash: `tag/${encodeURIComponent(this.state.currentTag)}`, active: true });
-        } else if (this.state.currentView === 'search') {
-            items.push({ name: '🔍 搜索', hash: 'search', active: true });
-        } else if (this.state.currentView === 'cross') {
-            items.push({ name: '🌊 跨省文物保护单位', hash: 'cross', active: true });
-        } else if (this.state.currentView === 'stories') {
-            items.push({ name: '📚 故事', hash: 'stories', active: true });
-        } else if (this.state.currentView === 'story' && this.state.currentTopic) {
-            items.push({ name: '📚 故事', hash: 'stories' });
-            const topic = StoryManager.getStoryMeta(this.state.currentTopic);
-            if (topic) {
-                items.push({ name: `${topic.icon} ${topic.title}`, hash: `story/${topic.id}`, active: true });
-            }
-        } else if (this.state.currentView === 'routes') {
-            items.push({ name: '🗺️ 路线', hash: 'routes', active: true });
-        } else if (this.state.currentView === 'route' && this.state.currentRoute) {
-            items.push({ name: '🗺️ 路线', hash: 'routes' });
-            const route = RouteManager.getRouteMeta(this.state.currentRoute);
-            if (route) {
-                items.push({ name: `${route.icon} ${route.title}`, hash: `route/${route.id}`, active: true });
-            }
-        } else if (this.state.currentView === 'games') {
-            items.push({ name: '🎮 游戏', hash: 'games', active: true });
-        } else if (this.state.currentView === 'game' && this.state.currentGame) {
-            items.push({ name: '🎮 游戏', hash: 'games' });
-            const game = GameManager.getGameMeta(this.state.currentGame);
-            if (game) {
-                items.push({ name: `${game.icon} ${game.title}`, hash: `game/${game.id}`, active: true });
-            }
-        }
-
-        breadcrumbList.innerHTML = items.map((item, index) => {
-            const isLast = index === items.length - 1;
-            if (isLast || item.active) {
-                return `<li class="active">${item.name}</li>`;
-            }
-            return `<li><a href="#${item.hash}">${item.name}</a></li>`;
-        }).join('');
-    },
-
-    // 更新活动导航
-    updateActiveNav() {
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-            const href = link.getAttribute('href');
-            if (href === `#${this.state.currentView}`) {
-                link.classList.add('active');
-            }
-        });
-    },
-
-    // 获取区县数据
-    getDistrictData(provinceId, districtId) {
-        const moduleName = this.dataModules[provinceId];
-        if (moduleName && typeof window[moduleName] !== 'undefined') {
-            const module = window[moduleName];
-            if (module && module.districts && module.districts[districtId]) {
-                return { id: districtId, ...module.districts[districtId] };
-            }
-        }
-        return null;
-    },
-
-    // 渲染首页 - 异步加载数据后渲染
-    async renderHome(container) {
-        // 显示加载状态
-        container.innerHTML = `
-            <div class="container">
-                <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">🏛️</div>
-                    <div>正在加载精彩内容...</div>
-                </div>
-            </div>
-        `;
-
-        const allTopicMetas = StoryManager.getAllStories();
-        const allGameMetas = GameManager.getAllGames();
-        const allRouteMetas = RouteManager.getAllRoutes();
-
-        const selectedTopicMeta = this.shuffleArray([...allTopicMetas]).slice(0, 1)[0];
-        const selectedGameMeta = this.shuffleArray([...allGameMetas]).slice(0, 1)[0];
-        const selectedRouteMeta = this.shuffleArray([...allRouteMetas]).slice(0, 1)[0];
-
-        const [topicData, gameData, routeData] = await Promise.all([
-            selectedTopicMeta ? StoryManager.getStoryWithData(selectedTopicMeta.id) : Promise.resolve(null),
-            selectedGameMeta ? GameManager.getGameWithData(selectedGameMeta.id) : Promise.resolve(null),
-            selectedRouteMeta ? RouteManager.getRouteWithData(selectedRouteMeta.id) : Promise.resolve(null)
-        ]);
-
-        const validTopicData = topicData && topicData.story ? topicData : null;
-        const validGameData = gameData && gameData.story ? gameData : null;
-        const validRouteData = routeData && routeData.route && routeData.route.stops && routeData.route.stops.length > 0 ? routeData : null;
-
-        if (!validTopicData && !validGameData && !validRouteData) {
-            container.innerHTML = `
-                <div class="container">
-                    <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
-                        <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
-                        <div>加载失败，请刷新页面重试</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const buildTopicSection = (topicData, type, index) => {
-            const topicStory = topicData.story;
-            const randomChapter = topicStory.chapters[Math.floor(Math.random() * topicStory.chapters.length)];
-            const topicParagraphs = randomChapter.content.split('\n\n').filter(p => p.trim());
-            const featuredTopicParagraphs = topicParagraphs.slice(0, 2);
-            const hashPrefix = type === 'game' ? 'game' : 'story';
-
-            return `
-                <div class="home-topic-section" onclick="window.location.hash='${hashPrefix}/${topicData.id}'" style="${index > 0 ? 'margin-top: 2rem;' : ''}">
-                    <div class="home-topic-header" style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; padding-bottom: 0.625rem; border-bottom: 2px solid ${topicData.color}30; cursor: pointer;">
-                        <span style="font-size: 1.5rem;">${topicData.icon}</span>
-                        <div>
-                            <div style="font-size: 1.0625rem; font-weight: 700; color: var(--text-primary);">${topicData.title}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">${topicData.subtitle}</div>
-                        </div>
-                    </div>
-                    <div class="home-chapter-layout">
-                        <div class="home-chapter-content">
-                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.375rem;">
-                                <span>${randomChapter.icon}</span>
-                                ${randomChapter.title}
-                            </h3>
-                            <div style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">
-                                ${featuredTopicParagraphs.map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
-                            </div>
-                        </div>
-                        <div class="home-featured-buildings" id="home-section-buildings-${index}">
-                            <div style="flex:1;min-width:0;padding:1rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">🏛️ 加载中...</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        };
-
-        const buildRouteSection = (routeData, index) => {
-            const route = routeData.route;
-            const randomStop = route.stops[Math.floor(Math.random() * route.stops.length)];
-            const routeParagraphs = randomStop.content.split('\n\n').filter(p => p.trim());
-            const featuredRouteParagraphs = routeParagraphs.slice(0, 2);
-
-            return `
-                <div class="home-route-section" onclick="window.location.hash='route/${routeData.id}'" style="margin-top: 2rem;">
-                    <div class="home-topic-header" style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; padding-bottom: 0.625rem; border-bottom: 2px solid ${routeData.color}30; cursor: pointer;">
-                        <span style="font-size: 1.5rem;">${routeData.icon}</span>
-                        <div>
-                            <div style="font-size: 1.0625rem; font-weight: 700; color: var(--text-primary);">${routeData.title}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">${routeData.subtitle}</div>
-                        </div>
-                    </div>
-                    <div class="home-chapter-layout">
-                        <div class="home-chapter-content">
-                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.375rem;">
-                                <span>${randomStop.icon}</span>
-                                ${randomStop.title}
-                            </h3>
-                            ${randomStop.poem ? `
-                            <div style="background: var(--bg-secondary); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.75rem; border-left: 3px solid ${routeData.color};">
-                                <pre style="font-family: inherit; font-size: 0.8rem; line-height: 1.6; color: var(--text-primary); margin: 0; white-space: pre-wrap;">${randomStop.poem}</pre>
-                            </div>
-                            ` : ''}
-                            <div style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">
-                                ${featuredRouteParagraphs.map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
-                            </div>
-                        </div>
-                        <div class="home-featured-buildings" id="home-section-buildings-${index}">
-                            <div style="flex:1;min-width:0;padding:1rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">🏛️ 加载中...</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        };
-
-        let sectionsHTML = '';
-        let sectionIndex = 0;
-        const loadTasks = [];
-
-        if (validGameData) {
-            sectionsHTML += buildTopicSection(validGameData, 'game', sectionIndex);
-            const gameStory = validGameData.story;
-            const randomChapter = gameStory.chapters[Math.floor(Math.random() * gameStory.chapters.length)];
-            loadTasks.push({ data: validGameData, chapter: randomChapter, containerId: `home-section-buildings-${sectionIndex}` });
-            sectionIndex++;
-        }
-
-        if (validTopicData) {
-            sectionsHTML += buildTopicSection(validTopicData, 'story', sectionIndex);
-            const topicStory = validTopicData.story;
-            const randomChapter = topicStory.chapters[Math.floor(Math.random() * topicStory.chapters.length)];
-            loadTasks.push({ data: validTopicData, chapter: randomChapter, containerId: `home-section-buildings-${sectionIndex}` });
-            sectionIndex++;
-        }
-
-        if (validRouteData) {
-            sectionsHTML += buildRouteSection(validRouteData, sectionIndex);
-            const route = validRouteData.route;
-            const randomStop = route.stops[Math.floor(Math.random() * route.stops.length)];
-            loadTasks.push({ data: validRouteData, chapter: randomStop, containerId: `home-section-buildings-${sectionIndex}` });
-            sectionIndex++;
-        }
-
-        container.innerHTML = `
-            <div class="container">
-                ${sectionsHTML}
-            </div>
-        `;
-
-        loadTasks.forEach(task => {
-            this._loadHomeFeaturedBuildings(task.data, task.chapter, task.containerId);
-        });
-    },
-
-    // 后台加载首页特色建筑卡片（用于故事或路线的单个章节/站点）
-    async _loadHomeFeaturedBuildings(item, chapterOrStop, containerId) {
-        // 收集需要加载的省份
-        const provincesToLoad = new Set();
-        if (chapterOrStop.buildings) {
-            chapterOrStop.buildings.forEach(b => {
-                if (b && b.province) provincesToLoad.add(b.province);
-            });
-        }
-
-        // 按需加载需要的省份数据
-        if (provincesToLoad.size > 0) {
-            await this.loadProvinces([...provincesToLoad]);
-        }
-
-        // 填充建筑卡片
-        if (chapterOrStop.buildings && chapterOrStop.buildings.length > 0) {
-            const shuffledBuildings = this.shuffleArray([...chapterOrStop.buildings]);
-            const featuredBuildingInfos = shuffledBuildings.slice(0, 2);
-            const featuredBuildings = featuredBuildingInfos
-                .map(bInfo => bInfo ? this._resolveBuildingRef(bInfo) : null)
-                .filter(b => b !== null);
-
-            const container = document.getElementById(containerId);
-            if (container && featuredBuildings.length > 0) {
-                container.innerHTML = featuredBuildings.map(building => `
-                    <div class="home-featured-building" onclick="event.stopPropagation(); App.navigateToBuilding('${building.name}')">
-                        ${this.createBuildingCard(building)}
-                    </div>
-                `).join('');
-            } else if (container) {
-                container.style.display = 'none';
-            }
-        }
-    },
-
-    // 渲染省份列表
-    renderProvinces(container) {
-        const crossStyle = this.getProvinceStyle('cross');
-
-        container.innerHTML = `
-            <div class="container">
-                <h2 class="section-title"><span class="section-icon">🗺️</span> 省份</h2>
-                <div class="province-grid">
-                    ${ProvincesData.getAllProvinces().map(province => {
-                        const style = this.getProvinceStyle(province.id);
-                        return `
-                        <div class="province-card ${province.count > 0 ? 'has-data' : 'no-data'}" onclick="window.location.hash='province/${province.id}'" style="border-left-color: ${style.color};">
-                            <div class="province-icon" style="background: ${style.bgColor}; color: ${style.color};">${style.icon}</div>
-                            <div class="province-info">
-                                <div class="province-name">${province.name}</div>
-                                <div class="province-count">${province.count > 0 ? province.count + '处' : '暂无数据'}</div>
-                            </div>
-                        </div>
-                    `}).join('')}
-                </div>
-
-                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light);">
-                    <h3 class="section-title" style="font-size: 1rem;"><span class="section-icon">🌊</span> 跨省文物保护单位</h3>
-                    <div class="province-card" onclick="window.location.hash='cross'" style="border-left-color: ${crossStyle.color}; max-width: 400px;">
-                        <div class="province-icon" style="background: ${crossStyle.bgColor}; color: ${crossStyle.color};">${crossStyle.icon}</div>
-                        <div class="province-info">
-                            <div class="province-name">跨省文物保护单位</div>
-                            <div class="province-count">点击查看全部</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    },
-
-    // 渲染省份详情
-    async renderProvince(container, provinceId) {
-        const province = ProvincesData.getProvinceById(provinceId);
-        const provinceStyle = this.getProvinceStyle(provinceId);
-
-        if (!province || province.count === 0) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <div class="empty-state-title">暂无数据</div>
-                        <p>${province ? province.name : '该省份'}的文物保护单位数据正在整理中</p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = `
-            <div class="container">
-                <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
-                    <div style="font-size: 2rem; margin-bottom: 1rem;">${provinceStyle.icon}</div>
-                    <div>正在加载${province.name}数据...</div>
-                </div>
-            </div>
-        `;
-
-        // 按需加载省份数据
-        const result = await this.loadProvinceData(provinceId);
-
-        if (!result) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚠️</div>
-                        <div class="empty-state-title">数据加载失败</div>
-                        <p>无法加载${province.name}的数据，请刷新页面重试</p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        let districts = [];
-        let allBuildings = [];
-
-        const moduleName = this.dataModules[provinceId];
-
-        if (moduleName && typeof window[moduleName] !== 'undefined') {
-            const module = window[moduleName];
-            if (module && typeof module.getAllDistricts === 'function') {
-                districts = module.getAllDistricts();
-            }
-            if (module && typeof module.getAllBuildings === 'function') {
-                allBuildings = module.getAllBuildings();
-            }
-        }
-
-        // 按区县分组建筑
-        const buildingsByDistrict = {};
-        allBuildings.forEach(b => {
-            if (!buildingsByDistrict[b.district]) {
-                buildingsByDistrict[b.district] = [];
-            }
-            buildingsByDistrict[b.district].push(b);
-        });
-
-        // 获取有数据的区县
-        const districtsWithData = districts.filter(d => {
-            const b = buildingsByDistrict[d.id];
-            return b && b.length > 0;
-        });
-
-        // 计算每个区县的时代分布
-        const getEraSummary = (buildings) => {
-            const eras = {};
-            buildings.forEach(b => {
-                if (b.era) eras[b.era] = (eras[b.era] || 0) + 1;
-            });
-            return Object.entries(eras)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 7)
-                .map(([era, count]) => `${era}(${count})`)
-                .join(' · ');
-        };
-
-        // 计算每个区县的标签分布（随机排序）
-        const getTagSummary = (buildings) => {
-            const tags = new Set();
-            buildings.forEach(b => {
-                if (b.tags) {
-                    b.tags.forEach(tag => tags.add(tag));
-                }
-            });
-            return App.shuffleArray([...tags]).slice(0, 7);
-        };
-
-        const protectionLabel = ProvincesData.getProtectionLabel(provinceId);
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="province-header" style="background: linear-gradient(135deg, ${provinceStyle.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${provinceStyle.color}25;">
-                    <div class="province-header-icon" style="background: ${provinceStyle.color};">${provinceStyle.icon}</div>
-                    <div class="province-header-info">
-                        <h2 class="section-title" style="margin: 0;">${province.name}</h2>
-                        <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">
-                            共有 <strong style="color: ${provinceStyle.color};">${province.count}</strong> 处${protectionLabel}
-                        </p>
-                    </div>
-                </div>
-
-                <div class="district-grid-cards">
-                    ${districtsWithData.map(district => {
-                        const districtBuildings = buildingsByDistrict[district.id] || [];
-                        const eraSummary = getEraSummary(districtBuildings);
-                        const tagSummary = getTagSummary(districtBuildings);
-                        const hasHeritage = districtBuildings.some(b => b.worldHeritage);
-                        const shuffledBuildings = this.shuffleArray([...districtBuildings]);
-                        const featuredBuildings = shuffledBuildings.slice(0, 7);
-                        return `
-                        <div class="district-grid-card" onclick="window.location.hash='province/${provinceId}/${district.id}'" style="border-top-color: ${provinceStyle.color};">
-                            <div class="district-grid-card-header">
-                                <span class="district-grid-card-name">${district.name}</span>
-                                ${hasHeritage ? '<span class="district-grid-heritage">🌍</span>' : ''}
-                            </div>
-                            <div class="district-grid-card-count">${districtBuildings.length} 处${protectionLabel}</div>
-                            ${eraSummary ? `<div class="district-grid-card-eras">${eraSummary}</div>` : ''}
-                            <div class="district-grid-card-examples">
-                                ${featuredBuildings.map(b => `<div class="district-grid-card-example">🏛️ ${b.name}</div>`).join('')}
-                            </div>
-                            <div class="district-grid-card-tags">
-                                ${tagSummary.slice(0, 7).map((tag, idx) => {
-                                    const tagStyle = App.getTagStyle(tag, idx);
-                                    return `<span class="district-grid-tag" style="background: ${tagStyle.bg}; color: ${tagStyle.color};">${tagStyle.icon} ${tag}</span>`;
-                                }).join('')}
-                            </div>
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        `;
-    },
-
-    // 渲染区县详情
-    async renderDistrict(container, provinceId, districtId) {
-        // 按需加载省份数据
-        await this.loadProvinceData(provinceId);
-
-        const province = ProvincesData.getProvinceById(provinceId);
-        const district = this.getDistrictData(provinceId, districtId);
-        const provinceStyle = this.getProvinceStyle(provinceId);
-
-
-
-        if (!district) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📍</div>
-                        <div class="empty-state-title">未找到该区县</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        let buildings = [];
-        const moduleName = this.dataModules[provinceId];
-        if (moduleName && typeof window[moduleName] !== 'undefined') {
-            const module = window[moduleName];
-            if (module && typeof module.getBuildingsByDistrict === 'function') {
-                buildings = module.getBuildingsByDistrict(districtId);
-            }
-        }
-
-        const districtProtectionLabel = ProvincesData.getProtectionLabel(provinceId);
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="district-header" style="background: linear-gradient(135deg, ${provinceStyle.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${provinceStyle.color}25;">
-                    <div class="district-header-icon" style="background: ${provinceStyle.color};">📍</div>
-                    <div class="district-header-info">
-                        <h2 class="section-title" style="margin: 0;">${province.name} - ${district.name}</h2>
-                        <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">
-                            共有 <strong style="color: ${provinceStyle.color};">${district.count}</strong> 处${districtProtectionLabel}
-                        </p>
-                    </div>
-                </div>
-
-                <div class="building-grid">
-                    ${buildings.map(building => this.createBuildingCard(building)).join('')}
-                </div>
-            </div>
-        `;
-    },
-
-    // 渲染建筑详情
-    async renderBuilding(container, buildingName) {
-        // 先尝试查找建筑
-        let building = this.findBuildingByFullPath(buildingName);
-
-        // 如果没找到，尝试加载所有省份数据
-        if (!building) {
-            const allProvinces = Object.keys(this.dataModules);
-            await this.loadProvinces(allProvinces);
-            building = this.findBuildingByFullPath(buildingName);
-        }
-
-        if (!building) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🏛️</div>
-                        <div class="empty-state-title">未找到该建筑</div>
-                        <p>路径: ${buildingName}</p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        // 处理内嵌数据的 provinceId（确保有有效的 provinceId）
-        const effectiveProvinceId = building.provinceId || building.province || 'unknown';
-        const provinceStyle = this.getProvinceStyle(effectiveProvinceId);
-
-        // 获取相关建筑推荐
-        const relatedBuildings = this.getRelatedBuildings(building, 4);
-
-        container.innerHTML = `
-            <div class="container">
-                <article class="building-detail">
-                    <header class="building-detail-header" style="border-left-color: ${provinceStyle.color};">
-                        <div class="building-detail-icon" style="background: ${provinceStyle.bgColor}; color: ${provinceStyle.color};">🏛️</div>
-                        <div class="building-detail-title-wrapper">
-                            <h2 class="building-detail-title">${building.name}</h2>
-                            <p class="building-detail-location">
-                                <span class="location-icon">📍</span> ${building.location}
-                                <span class="map-links-inline">
-                                    <a href="https://ditu.amap.com/search?query=${encodeURIComponent(building.name)}" target="_blank" class="map-link-inline amap" title="高德地图">🗺️</a>
-                                    <a href="https://www.google.com/maps/search/${encodeURIComponent(building.location)}" target="_blank" class="map-link-inline google" title="谷歌地图">🌐</a>
-                                </span>
-                            </p>
-                        </div>
-                    </header>
-
-                    <div class="building-detail-sections">
-                        <div class="building-detail-section" id="section-basic">
-                            <h3><span class="section-icon">📋</span> 基本信息</h3>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">年代</span>
-                                    <span class="info-value">${building.era}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">类型</span>
-                                    <span class="info-value">${building.type}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">所在地区</span>
-                                    <span class="info-value">${building.province} ${building.districtName}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">保护级别</span>
-                                    <span class="info-value">${building.protectionLevel}</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">公布批次</span>
-                                    <span class="info-value">${building.protectionBatch}</span>
-                                </div>
-                                ${building.worldHeritage ? `
-                                <div class="info-item heritage">
-                                    <span class="info-label">世界遗产</span>
-                                    <span class="info-value">${building.worldHeritageYear}年列入 🌍</span>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        <div class="building-detail-section" id="section-desc">
-                            <h3><span class="section-icon">✨</span> 特色介绍</h3>
-                            <p class="detail-paragraph">${building.description}</p>
-                        </div>
-
-                        <div class="building-detail-section" id="section-history">
-                            <h3><span class="section-icon">📜</span> 历史背景</h3>
-                            <p class="detail-paragraph">${building.history}</p>
-                        </div>
-
-                        <div class="building-detail-section" id="section-arch">
-                            <h3><span class="section-icon">🏗️</span> 建筑风格</h3>
-                            <p class="detail-paragraph">${building.architecture}</p>
-                        </div>
-
-                        <div class="building-detail-section" id="section-features">
-                            <h3><span class="section-icon">💎</span> 特色与价值</h3>
-                            <p class="detail-paragraph">${building.features}</p>
-                        </div>
-
-                        ${building.sections ? `
-                        <div class="building-detail-section" id="section-sections">
-                            <h3><span class="section-icon">🗺️</span> 分段信息</h3>
-                            <div class="sections-grid">
-                                ${building.sections.map(section => `
-                                    <div class="section-card">
-                                        <div class="section-name">${section.name}</div>
-                                        <div class="section-province">${section.province}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        ` : ''}
-
-                        <div class="building-detail-section" id="section-tags">
-                            <h3><span class="section-icon">🏷️</span> 标签</h3>
-                            <div class="building-detail-tags">
-                                ${building.tags.map((tag, idx) => {
-                                    const tagStyle = this.getTagStyle(tag, idx);
-                                    return `<span class="building-detail-tag" onclick="window.location.hash='tag/${encodeURIComponent(tag)}'" style="background: ${tagStyle.bg}; color: ${tagStyle.color}; border-color: ${tagStyle.color}30;"><span class="tag-icon">${tagStyle.icon}</span> ${tag}</span>`;
-                                }).join('')}
-                            </div>
-                        </div>
-
-                        <div class="building-detail-section" id="section-video">
-                            <h3><span class="section-icon">🎬</span> 相关视频</h3>
-                            <p class="video-hint">点击下方按钮搜索「${building.name}」的短视频</p>
-                            <div class="video-links">
-                                <a href="https://www.douyin.com/search/${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link douyin">
-                                    <span class="video-link-icon">🎵</span>
-                                    <span class="video-link-label">抖音</span>
-                                </a>
-                                <a href="https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link xiaohongshu">
-                                    <span class="video-link-icon">📕</span>
-                                    <span class="video-link-label">小红书</span>
-                                </a>
-                                <a href="https://search.bilibili.com/all?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link bilibili">
-                                    <span class="video-link-icon">📺</span>
-                                    <span class="video-link-label">哔哩哔哩</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- 相关建筑推荐 -->
-                ${relatedBuildings.length > 0 ? `
-                <section class="related-buildings-section">
-                    <h2 class="section-title"><span class="section-icon">🔗</span> 相关推荐</h2>
-                    <p class="related-hint">同地区或同类型的其他文物保护单位</p>
-                    <div class="building-grid">
-                        ${relatedBuildings.map(b => this.createBuildingCard(b)).join('')}
-                    </div>
-                </section>
-                ` : ''}
-            </div>
-        `;
-    },
-
-    // 获取相关建筑推荐
-    getRelatedBuildings(building, limit = 4) {
-        const allBuildings = DataLoader.getAllBuildings();
-        const related = [];
-
-        // 首先找同区县的
-        const sameDistrict = allBuildings.filter(b =>
-            b.district === building.district &&
-            b.name !== building.name
-        );
-        related.push(...sameDistrict);
-
-        // 然后找有相同标签的
-        if (related.length < limit) {
-            const sameTags = allBuildings.filter(b => {
-                if (b.name === building.name) return false;
-                if (related.some(r => r.name === b.name)) return false;
-                return b.tags.some(tag => building.tags.includes(tag));
-            });
-            related.push(...sameTags);
-        }
-
-        // 最后找同时代的
-        if (related.length < limit) {
-            const sameEra = allBuildings.filter(b => {
-                if (b.name === building.name) return false;
-                if (related.some(r => r.name === b.name)) return false;
-                return b.era === building.era;
-            });
-            related.push(...sameEra);
-        }
-
-        // 随机排序并返回前limit个
-        return this.shuffleArray(related).slice(0, limit);
-    },
-
-    // 渲染标签页面
-    renderTags(container) {
-        const tags = DataLoader.getAllTags();
-
-        // 如果数据还没加载完，显示加载状态并等待
-        if (tags.length === 0) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="loading-state" style="text-align: center; padding: 4rem 2rem;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔄</div>
-                        <div style="font-size: 1.125rem; color: var(--text-primary); margin-bottom: 0.5rem;">数据加载中...</div>
-                        <div style="font-size: 0.875rem; color: var(--text-muted);">正在加载所有省份数据，请稍候</div>
-                    </div>
-                </div>
-            `;
-            // 注册回调，数据加载完成后重新渲染
-            this.onDataLoaded(() => {
-                if (this.state.currentView === 'tags') {
-                    this.renderTags(container);
-                }
-            });
-            return;
-        }
-
-        const maxCount = Math.max(...tags.map(t => t.count));
-        const minCount = Math.min(...tags.map(t => t.count));
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="tags-cloud-modern">
-                    ${tags.map((tag, index) => {
-                        const tagStyle = this.getTagStyle(tag.name, index);
-                        // 计算字体大小 (14px - 24px)
-                        const size = minCount === maxCount ? 16 : 14 + (tag.count - minCount) / (maxCount - minCount) * 10;
-                        return `
-                        <span class="tag-modern"
-                              onclick="window.location.hash='tag/${encodeURIComponent(tag.name)}'"
-                              style="font-size: ${size}px; background: ${tagStyle.bg}; color: ${tagStyle.color}; border: 1px solid ${tagStyle.color}30;">
-                            <span class="tag-modern-icon">${tagStyle.icon}</span>
-                            <span class="tag-modern-name">${tag.name}</span>
-                            <span class="tag-modern-count" style="background: ${tagStyle.color}20;">${tag.count}</span>
-                        </span>
-                    `}).join('')}
-                </div>
-            </div>
-        `;
-    },
-
-    // 渲染标签搜索结果
-    renderTagResults(container, tagName) {
-        const decodedTag = decodeURIComponent(tagName);
-        const buildings = DataLoader.getBuildingsByTag(decodedTag);
-        const tagStyle = this.getTagStyle(decodedTag, 0);
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="tag-header" style="background: ${tagStyle.bg}; border: 1px solid ${tagStyle.color}30;">
-                    <div class="tag-header-icon" style="background: ${tagStyle.color};">${tagStyle.icon}</div>
-                    <div class="tag-header-info">
-                        <h2 class="section-title" style="margin: 0;">标签：${decodedTag}</h2>
-                        <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">
-                            共找到 <strong style="color: ${tagStyle.color};">${buildings.length}</strong> 处相关建筑
-                        </p>
-                    </div>
-                </div>
-
-                ${buildings.length > 0 ? `
-                    <div class="building-grid">
-                        ${buildings.map(building => this.createBuildingCard(building)).join('')}
-                    </div>
-                ` : `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🏷️</div>
-                        <div class="empty-state-title">未找到相关建筑</div>
-                    </div>
-                `}
-            </div>
-        `;
-    },
-
-    // 搜索防抖计时器
-    _searchDebounceTimer: null,
-
-    // 渲染搜索页面
-    renderSearchPage(container) {
-        container.innerHTML = `
-            <div class="container">
-                <div class="search-page">
-                    <div class="search-page-input-wrapper">
-                        <input type="text"
-                               class="search-page-input"
-                               placeholder="搜索建筑名称、地点、年代..."
-                               id="searchPageInput"
-                               autocomplete="off">
-                        <button class="search-page-clear" id="searchPageClear" style="display: none;">×</button>
-                    </div>
-
-                    <div class="search-page-results" id="searchPageResults">
-                        <div class="search-page-hint">
-                            <p>输入关键词搜索</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // 绑定搜索事件
-        const input = document.getElementById('searchPageInput');
-        const clearBtn = document.getElementById('searchPageClear');
-        const resultsContainer = document.getElementById('searchPageResults');
-
-        if (input) {
-            input.focus();
-            input.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-
-                if (this._searchDebounceTimer) {
-                    clearTimeout(this._searchDebounceTimer);
-                }
-
-                if (query) {
-                    clearBtn.style.display = 'flex';
-                    this._searchDebounceTimer = setTimeout(() => {
-                        this.renderSearchPageResults(query, resultsContainer);
-                    }, 300);
-                } else {
-                    clearBtn.style.display = 'none';
-                    resultsContainer.innerHTML = `
-                        <div class="search-page-hint">
-                            <p>输入关键词搜索</p>
-                        </div>
-                    `;
-                }
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                input.value = '';
-                clearBtn.style.display = 'none';
-                resultsContainer.innerHTML = `
-                    <div class="search-page-hint">
-                        <p>输入关键词搜索</p>
-                    </div>
-                `;
-                input.focus();
-            });
-        }
-    },
-
-    // 渲染搜索页面结果
-    renderSearchPageResults(query, container) {
-        const allBuildings = DataLoader.getAllBuildings();
-
-        // 如果数据还没加载完，显示加载状态
-        if (allBuildings.length === 0) {
-            container.innerHTML = `
-                <div class="search-page-loading" style="text-align: center; padding: 3rem 2rem;">
-                    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔄</div>
-                    <div style="font-size: 1rem; color: var(--text-primary);">数据加载中，请稍候...</div>
-                </div>
-            `;
-            // 注册回调，数据加载完成后自动重新搜索
-            this.onDataLoaded(() => {
-                if (this.state.currentView === 'search') {
-                    this.renderSearchPageResults(query, container);
-                }
-            });
-            return;
-        }
-
-        const results = DataLoader.searchBuildings(query);
-
-        if (results.length === 0) {
-            container.innerHTML = `
-                <div class="search-page-empty">
-                    <div class="search-empty-icon">🔍</div>
-                    <div class="search-empty-title">未找到相关建筑</div>
-                    <p>请尝试其他关键词，如建筑名称、地点、年代、历史事件等</p>
-                    <div class="search-tips">
-                        <p>💡 搜索提示：</p>
-                        <ul>
-                            <li>支持搜索建筑名称、地址、年代</li>
-                            <li>支持搜索建筑描述和历史背景</li>
-                            <li>支持搜索标签和保护批次</li>
-                        </ul>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = `
-            <div class="search-results-count">
-                找到 <strong>${results.length}</strong> 处相关建筑
-                <span class="search-query-text">"${query}"</span>
-            </div>
-            <div class="building-grid">
-                ${results.map(building => this.createSearchResultCard(building)).join('')}
-            </div>
-        `;
-    },
-
-    // 创建搜索结果卡片 - 带匹配原因
-    createSearchResultCard(building) {
-        const hashUrl = this.generateBuildingHash(building);
-        const provinceStyle = this.getProvinceStyle(building.provinceId);
-        const protectionBadge = this.generateProtectionBadge(building);
-        const shortDesc = this.truncateText(building.description, 50);
-
-        // 显示匹配原因
-        const matchReasonsHtml = building.matchReasons ?
-            `<div class="match-reasons">${building.matchReasons.map(r => `<span class="match-reason">${r}</span>`).join('')}</div>` : '';
-
-        return `
-            <div class="building-card search-result-card" data-hash="${hashUrl}" style="border-left-color: ${provinceStyle.color};">
-                <div class="building-card-header" style="background: ${provinceStyle.bgColor};">
-                    <div class="building-card-header-left">
-                        <div class="building-province-icon" style="color: ${provinceStyle.color};">${provinceStyle.icon}</div>
-                        <div class="building-district">${building.districtName}</div>
-                    </div>
-                    ${protectionBadge}
-                </div>
-                <div class="building-content">
-                    <h3 class="building-title">${building.name}</h3>
-                    ${matchReasonsHtml}
-                    <div class="building-meta">
-                        <span class="building-era">📅 ${building.era}</span>
-                        <span class="building-type">${this.truncateText(building.type, 12)}</span>
-                    </div>
-                    <p class="building-desc">${shortDesc}</p>
-                    <div class="building-tags">
-                        ${building.tags.slice(0, 4).map((tag, idx) => {
-                            const tagStyle = this.getTagStyle(tag, idx);
-                            return `<span class="building-tag" style="background: ${tagStyle.bg}; color: ${tagStyle.color};">${tagStyle.icon} ${tag}</span>`;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-    },
-
-    // 创建建筑卡片 - 增强版（带缓存）
-    createBuildingCard(building) {
-        // 使用建筑名称作为缓存键
-        const cacheKey = building.name;
-
-        // 检查缓存
-        if (this._cache.buildingCards.has(cacheKey)) {
-            return this._cache.buildingCards.get(cacheKey);
-        }
-
-        const hashUrl = this.generateBuildingHash(building);
-        const provinceStyle = this.getProvinceStyle(building.provinceId);
-        const protectionBadge = this.generateProtectionBadge(building);
-        const shortDesc = this.truncateText(building.description, 60, '');
-
-        // 获取重要标签（优先显示特色标签）
-        const priorityTags = ['世界遗产', '古建筑', '近代建筑', '寺庙', '宫殿', '园林', '陵墓', '石窟', '塔', '桥梁', '革命遗址', '名人故居'];
-        const sortedTags = [...building.tags].sort((a, b) => {
-            const aPriority = priorityTags.indexOf(a);
-            const bPriority = priorityTags.indexOf(b);
-            if (aPriority !== -1 && bPriority === -1) return -1;
-            if (aPriority === -1 && bPriority !== -1) return 1;
-            return 0;
-        });
-
-        const cardHTML = `
-            <div class="building-card" data-hash="${hashUrl}" style="border-left-color: ${provinceStyle.color};">
-                <div class="building-card-header" style="background: ${provinceStyle.bgColor};">
-                    <div class="building-card-header-left">
-                        <div class="building-province-icon" style="color: ${provinceStyle.color};">${provinceStyle.icon}</div>
-                        <div class="building-district">${building.districtName}</div>
-                    </div>
-                    ${protectionBadge}
-                </div>
-                <div class="building-content">
-                    <h3 class="building-title">${building.name}</h3>
-                    <div class="building-meta">
-                        <span class="building-era" title="年代">📅 ${building.era}</span>
-                        <span class="building-type" title="类型">${this.truncateText(building.type, 12)}</span>
-                    </div>
-                    <p class="building-desc">${shortDesc}</p>
-                    <div class="building-tags">
-                        ${sortedTags.slice(0, 5).map((tag, idx) => {
-                            const tagStyle = this.getTagStyle(tag, idx);
-                            return `<span class="building-tag" style="background: ${tagStyle.bg}; color: ${tagStyle.color};">${tagStyle.icon} ${tag}</span>`;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // 存入缓存，限制缓存大小
-        if (this._cache.buildingCards.size >= this._cacheLimits.buildingCards) {
-            const firstKey = this._cache.buildingCards.keys().next().value;
-            this._cache.buildingCards.delete(firstKey);
-        }
-        this._cache.buildingCards.set(cacheKey, cardHTML);
-
-        return cardHTML;
-    },
-
-    // 渲染跨省文物保护单位页面
-    async renderCrossProvince(container) {
-        // 显示加载状态
-        container.innerHTML = `
-            <div class="container">
-                <div class="loading-state" style="text-align: center; padding: 4rem 2rem;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔄</div>
-                    <div style="font-size: 1.125rem; color: var(--text-primary);">正在加载跨省数据...</div>
-                </div>
-            </div>
-        `;
-
-        // 跨省数据文件名为 cross-province.js，但模块名为 CrossProvinceData
-        // 先尝试直接加载脚本
-        if (!window.CrossProvinceData) {
-            const result = await this.loadProvinceData('cross');
-            if (!result) {
-                container.innerHTML = `
-                    <div class="container">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">⚠️</div>
-                            <div class="empty-state-title">加载失败</div>
-                            <p>无法加载跨省文物保护单位数据</p>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-        }
-
-        if (!window.CrossProvinceData || typeof window.CrossProvinceData.getAllBuildings !== 'function') {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <div class="empty-state-title">暂无数据</div>
-                        <p>跨省文物保护单位数据暂未收录</p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const crossBuildings = window.CrossProvinceData.getAllBuildings();
-
-        container.innerHTML = `
-            <div class="container">
-                <h2 class="section-title"><span class="section-icon">🌊</span> 跨省文物保护单位</h2>
-                <div class="building-grid">
-                    ${crossBuildings.map(building => this.createBuildingCard(building)).join('')}
-                </div>
-            </div>
-        `;
-    },
-
-    // 渲染专题列表页
-    renderTopics(container) {
-        const topics = StoryManager.getAllStories();
-        const categories = StoryManager.categories;
-
-        // 按分类组织故事
-        const topicsByCategory = {};
-        Object.keys(categories).forEach(key => {
-            topicsByCategory[key] = [];
-        });
-
-        topics.forEach(topic => {
-            if (topic.category && topicsByCategory[topic.category]) {
-                topicsByCategory[topic.category].push(topic);
-            }
-        });
-
-        container.innerHTML = `
-            <div class="container">
-                <h2 class="section-title"><span class="section-icon">📚</span> 故事</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">跟着名著、传说、戏曲，开启古建之旅</p>
-
-                ${Object.entries(categories).map(([key, category]) => {
-                    const categoryTopics = topicsByCategory[key];
-                    if (categoryTopics.length === 0) return '';
-
-                    return `
-                    <div class="story-category-section" style="margin-bottom: 2.5rem;">
-                        <div class="story-category-header" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--border-light);">
-                            <span style="font-size: 1.5rem;">${category.icon}</span>
-                            <div>
-                                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin: 0;">${category.name}</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">${category.description}</p>
-                            </div>
-                            <span style="margin-left: auto; font-size: 0.875rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.25rem 0.75rem; border-radius: 9999px;">${categoryTopics.length} 个故事</span>
-                        </div>
-                        <div class="topics-grid">
-                            ${categoryTopics.map(topic => `
-                                <div class="topic-card" onclick="window.location.hash='story/${topic.id}'" style="border-left-color: ${topic.color};">
-                                    <div class="topic-card-icon" style="background: ${topic.bgColor}; color: ${topic.color};">${topic.icon}</div>
-                                    <div class="topic-card-content">
-                                        <div class="topic-card-title">${topic.title}</div>
-                                        <div class="topic-card-subtitle">${topic.subtitle}</div>
-                                        <div class="topic-card-desc">${topic.description}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-    },
-
-    // 渲染专题详情页
-    async renderTopicDetail(container, topicId) {
-        const topicData = await StoryManager.getStoryWithData(topicId);
-        if (!topicData || !topicData.story) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📚</div>
-                        <div class="empty-state-title">故事未找到</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const story = topicData.story;
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="topic-detail-header" style="background: linear-gradient(135deg, ${topicData.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${topicData.color}25;">
-                    <div class="topic-detail-icon" style="background: ${topicData.color};">${topicData.icon}</div>
-                    <div class="topic-detail-info">
-                        <h1 class="topic-detail-title">${story.title}</h1>
-                        <p class="topic-detail-subtitle">${topicData.subtitle}</p>
-                    </div>
-                </div>
-
-                <div class="topic-intro">
-                    ${story.intro.split('\n\n').map(p => `<p>${p}</p>`).join('')}
-                </div>
-
-                <div class="topic-chapters">
-                    ${story.chapters.map((chapter, index) => {
-                        // 优先使用内嵌建筑数据
-                        const chapterBuildings = chapter.buildings
-                            .map(b => this._resolveBuildingRef(b))
-                            .filter(b => b !== null);
-
-                        return `
-                        <div class="topic-chapter" id="chapter-${index}">
-                            <h3 class="topic-chapter-title">
-                                <span class="topic-chapter-icon">${chapter.icon}</span>
-                                ${chapter.title}
-                            </h3>
-                            <div class="topic-chapter-content">
-                                ${chapter.content.split('\n\n').map(p => `<p>${p}</p>`).join('')}
-                            </div>
-                            ${chapterBuildings.length > 0 ? `
-                                <div class="topic-chapter-buildings">
-                                    <h4 class="topic-buildings-title">🏛️ 相关古建</h4>
-                                    <div class="building-grid compact">
-                                        ${chapterBuildings.map(building => this.createBuildingCard(building)).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                ${story.allBuildings.length > 0 ? `
-                <div class="topic-all-buildings">
-                    <h3 class="section-title"><span class="section-icon">🏛️</span> 故事涉及古建一览</h3>
-                    <div class="building-grid">
-                        ${story.allBuildings.map(b => {
-                            const building = this._resolveBuildingRef(b, topicData);
-                            return building ? this.createBuildingCard(building) : '';
-                        }).join('')}
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-    },
-
-    // 渲染路线列表页
-    renderRoutes(container) {
-        const routes = RouteManager.getAllRoutes();
-        const categories = RouteManager.categories;
-
-        // 按分类组织路线
-        const routesByCategory = {};
-        Object.keys(categories).forEach(key => {
-            routesByCategory[key] = [];
-        });
-
-        routes.forEach(route => {
-            if (route.category && routesByCategory[route.category]) {
-                routesByCategory[route.category].push(route);
-            }
-        });
-
-        container.innerHTML = `
-            <div class="container">
-                <h2 class="section-title"><span class="section-icon">🗺️</span> 路线</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">追随文人雅士的足迹，探访诗中的古建</p>
-
-                ${Object.entries(categories).map(([key, category]) => {
-                    const categoryRoutes = routesByCategory[key];
-                    if (categoryRoutes.length === 0) return '';
-
-                    return `
-                    <div class="story-category-section" style="margin-bottom: 2.5rem;">
-                        <div class="story-category-header" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--border-light);">
-                            <span style="font-size: 1.5rem;">${category.icon}</span>
-                            <div>
-                                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin: 0;">${category.name}</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">${category.description}</p>
-                            </div>
-                            <span style="margin-left: auto; font-size: 0.875rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.25rem 0.75rem; border-radius: 9999px;">${categoryRoutes.length} 条路线</span>
-                        </div>
-                        <div class="topics-grid">
-                            ${categoryRoutes.map(route => `
-                                <div class="topic-card" onclick="window.location.hash='route/${route.id}'" style="border-left-color: ${route.color};">
-                                    <div class="topic-card-icon" style="background: ${route.bgColor}; color: ${route.color};">${route.icon}</div>
-                                    <div class="topic-card-content">
-                                        <div class="topic-card-title">${route.title}</div>
-                                        <div class="topic-card-subtitle">${route.subtitle}</div>
-                                        <div class="topic-card-desc">${route.description}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-    },
-
-    // 渲染路线详情页
-    async renderRouteDetail(container, routeId) {
-        const routeData = await RouteManager.getRouteWithData(routeId);
-        if (!routeData) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🗺️</div>
-                        <div class="empty-state-title">路线未找到</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const route = routeData.route;
-        const totalStops = route.stops.length;
-
-        // 收集需要加载的省份
-        const provincesToLoad = new Set();
-        route.stops.forEach(stop => {
-            if (stop.buildings) {
-                stop.buildings.forEach(b => {
-                    if (b && b.province) provincesToLoad.add(b.province);
-                });
-            }
-        });
-
-        // 按需加载需要的省份数据
-        if (provincesToLoad.size > 0) {
-            await this.loadProvinces([...provincesToLoad]);
-        }
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="topic-detail-header" style="background: linear-gradient(135deg, ${routeData.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${routeData.color}25;">
-                    <div class="topic-detail-icon" style="background: ${routeData.color};">${routeData.icon}</div>
-                    <div class="topic-detail-info">
-                        <h1 class="topic-detail-title">${route.title}</h1>
-                        <p class="topic-detail-subtitle">${routeData.subtitle}</p>
-                    </div>
-                </div>
-
-                <div class="topic-intro">
-                    ${route.intro.split('\n\n').map(p => `<p>${p}</p>`).join('')}
-                </div>
-
-                <!-- 路线时间轴 -->
-                <div class="route-timeline" style="position: relative; margin: 2rem 0;">
-                    <!-- 连接线 -->
-                    <div class="route-timeline-line" style="position: absolute; left: 24px; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, ${routeData.color}40, ${routeData.color}); border-radius: 3px;"></div>
-
-                    ${route.stops.map((stop, index) => {
-                        const isLast = index === totalStops - 1;
-                        const isFirst = index === 0;
-                        const stopBuildings = stop.buildings
-                            .map(b => this._resolveBuildingRef(b, routeData))
-                            .filter(b => b !== null);
-
-                        return `
-                        <div class="route-stop" style="position: relative; padding-left: 64px; margin-bottom: ${isLast ? '0' : '2rem'};">
-                            <!-- 站点标记 -->
-                            <div class="route-stop-marker" style="position: absolute; left: 12px; top: 0; width: 28px; height: 28px; border-radius: 50%; background: ${routeData.color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; border: 3px solid var(--bg-card); box-shadow: 0 0 0 3px ${routeData.color}40; z-index: 1;">
-                                ${index + 1}
-                            </div>
-
-                            <!-- 站点内容卡片 -->
-                            <div class="route-stop-card">
-                                <!-- 卡片头部 -->
-                                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); background: linear-gradient(135deg, ${routeData.bgColor}80 0%, var(--bg-card) 100%);">
-                                    <div style="display: flex; align-items: center; gap: 0.625rem;">
-                                        <span style="font-size: 1.25rem;">${stop.icon}</span>
-                                        <div>
-                                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">${stop.title}</h3>
-                                            ${stop.poet ? `<div style="font-size: 0.75rem; color: ${routeData.color}; margin-top: 0.25rem;">📜 ${stop.poet}</div>` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- 诗词展示 -->
-                                ${stop.poem ? `
-                                <div style="padding: 1rem 1.25rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light);">
-                                    <pre style="font-family: inherit; font-size: 0.875rem; line-height: 1.8; color: var(--text-primary); margin: 0; white-space: pre-wrap;">${stop.poem}</pre>
-                                </div>
-                                ` : ''}
-
-                                <!-- 内容描述 -->
-                                <div style="padding: 1rem 1.25rem;">
-                                    <div class="topic-chapter-content" style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">
-                                        ${stop.content.split('\n\n').map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
-                                    </div>
-                                </div>
-
-                                <!-- 相关古建 -->
-                                ${stopBuildings.length > 0 ? `
-                                <div style="padding: 0 1.25rem 1rem;">
-                                    <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">🏛️ 相关古建</div>
-                                    <div class="building-grid compact">
-                                        ${stopBuildings.map(building => this.createBuildingCard(building)).join('')}
-                                    </div>
-                                </div>
-                                ` : ''}
-                            </div>
-
-                            <!-- 下一站箭头 -->
-                            ${!isLast ? `
-                            <div style="display: flex; align-items: center; justify-content: center; margin-top: 1rem; margin-left: -64px;">
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: ${routeData.color}; font-size: 0.75rem; font-weight: 600;">
-                                    <span>↓</span>
-                                    <span>前往下一站</span>
-                                    <span>↓</span>
-                                </div>
-                            </div>
-                            ` : ''}
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                ${route.allBuildings.length > 0 ? `
-                <div class="topic-all-buildings">
-                    <h3 class="section-title"><span class="section-icon">🏛️</span> 路线涉及古建一览</h3>
-                    <div class="building-grid">
-                        ${route.allBuildings.map(b => {
-                            const building = this._resolveBuildingRef(b, routeData);
-                            return building ? this.createBuildingCard(building) : '';
-                        }).join('')}
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-    },
-
-    // 渲染游戏列表页
-    async renderGameList(container) {
-        const games = GameManager.getAllGames();
-        const categories = GameManager.categories;
-
-        const gamesByCategory = {};
-        Object.keys(categories).forEach(key => {
-            gamesByCategory[key] = [];
-        });
-
-        games.forEach(game => {
-            if (game.category && gamesByCategory[game.category]) {
-                gamesByCategory[game.category].push(game);
-            }
-        });
-
-        container.innerHTML = `
-            <div class="container">
-                <h2 class="section-title"><span class="section-icon">🎮</span> 游戏</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">走进热门游戏中的中国古建场景原型，在虚拟与现实之间架起桥梁</p>
-
-                ${Object.entries(categories).map(([key, category]) => {
-                    const categoryGames = gamesByCategory[key];
-                    if (categoryGames.length === 0) return '';
-
-                    return `
-                    <div class="story-category-section" style="margin-bottom: 2.5rem;">
-                        <div class="story-category-header" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--border-light);">
-                            <span style="font-size: 1.5rem;">${category.icon}</span>
-                            <div>
-                                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin: 0;">${category.name}</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">${category.description}</p>
-                            </div>
-                            <span style="margin-left: auto; font-size: 0.875rem; color: var(--text-muted); background: var(--bg-secondary); padding: 0.25rem 0.75rem; border-radius: 9999px;">${categoryGames.length} 款游戏</span>
-                        </div>
-                        <div class="topics-grid">
-                            ${categoryGames.map(game => `
-                                <div class="topic-card" onclick="window.location.hash='game/${game.id}'" style="border-left-color: ${game.color};">
-                                    <div class="topic-card-icon" style="background: ${game.bgColor}; color: ${game.color};">${game.icon}</div>
-                                    <div class="topic-card-content">
-                                        <div class="topic-card-title">${game.title}</div>
-                                        <div class="topic-card-subtitle">${game.subtitle}</div>
-                                        <div class="topic-card-desc">${game.description}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-    },
-
-    // 渲染游戏详情页
-    async renderGameDetail(container, gameId) {
-        const gameModule = await GameManager.loadGame(gameId);
-        const gameMeta = GameManager.getGameMeta(gameId);
-
-        if (!gameModule || !gameModule.story) {
-            container.innerHTML = `
-                <div class="container">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎮</div>
-                        <div class="empty-state-title">游戏内容未找到</div>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const story = gameModule.story;
-
-        container.innerHTML = `
-            <div class="container">
-                <div class="topic-detail-header" style="background: linear-gradient(135deg, ${gameMeta.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${gameMeta.color}25;">
-                    <div class="topic-detail-icon" style="background: ${gameMeta.color};">${gameMeta.icon}</div>
-                    <div class="topic-detail-info">
-                        <h1 class="topic-detail-title">${story.title}</h1>
-                        <p class="topic-detail-subtitle">${gameMeta.subtitle}</p>
-                    </div>
-                </div>
-
-                <div class="topic-intro">
-                    ${story.intro.split('\n\n').map(p => `<p>${p}</p>`).join('')}
-                </div>
-
-                <div class="topic-chapters">
-                    ${story.chapters.map((chapter, index) => {
-                        const chapterBuildings = chapter.buildings
-                            .map(b => this._resolveBuildingRef(b, gameMeta))
-                            .filter(b => b !== null);
-
-                        return `
-                        <div class="topic-chapter" id="chapter-${index}">
-                            <h3 class="topic-chapter-title">
-                                <span class="topic-chapter-icon">${chapter.icon}</span>
-                                ${chapter.title}
-                            </h3>
-                            <div class="topic-chapter-content">
-                                ${chapter.content.split('\n\n').map(p => `<p>${p}</p>`).join('')}
-                            </div>
-                            ${chapterBuildings.length > 0 ? `
-                                <div class="topic-chapter-buildings">
-                                    <h4 class="topic-buildings-title">🏛️ 相关古建</h4>
-                                    <div class="building-grid compact">
-                                        ${chapterBuildings.map(building => this.createBuildingCard(building)).join('')}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                ${story.allBuildings.length > 0 ? `
-                <div class="topic-all-buildings">
-                    <h3 class="section-title"><span class="section-icon">🏛️</span> 游戏涉及古建一览</h3>
-                    <div class="building-grid">
-                        ${story.allBuildings.map(b => {
-                            const building = this._resolveBuildingRef(b, gameMeta);
-                            return building ? this.createBuildingCard(building) : '';
-                        }).join('')}
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-        `;
-    },
-
-    // 数组随机排序（返回新数组，不修改原数组）
-    shuffleArray(array) {
-        const arr = [...array];
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
+    other: {
+      label: '其他',
+      key: 'other',
+      icon: '📍',
+      color: '#3498DB',
+      bgColor: '#F0F8FF',
+      markerColor: '#2980B9',
+      size: 20,
+      matchTypes: ['其他', '']
     }
+  },
+
+  eras: [
+    { id: 'paleolithic', name: '旧石器', keywords: ['旧石器'], yearMin: -Infinity, yearMax: -10000 },
+    { id: 'neolithic', name: '新石器', keywords: ['新石器', '龙山文化'], yearMin: -10000, yearMax: -2000 },
+    { id: 'xia', name: '夏', keywords: ['夏代', '夏朝', '夏', '上古'], yearMin: -2070, yearMax: -1600 },
+    { id: 'shang', name: '商', keywords: ['商代', '商朝', '商', '青铜时代', '殷'], yearMin: -1600, yearMax: -1046 },
+    { id: 'western_zhou', name: '西周', keywords: ['西周'], yearMin: -1046, yearMax: -771 },
+    { id: 'eastern_zhou', name: '东周', keywords: ['东周'], yearMin: -770, yearMax: -256, timeline: false },
+    { id: 'spring_autumn', name: '春秋', keywords: ['春秋'], yearMin: -770, yearMax: -476 },
+    { id: 'warring_states', name: '战国', keywords: ['战国'], yearMin: -475, yearMax: -221 },
+    { id: 'zhou', name: '周', keywords: ['周代', '周朝', '周'], yearMin: -1046, yearMax: -256, timeline: false },
+    { id: 'qin', name: '秦', keywords: ['秦代', '秦朝', '秦汉', '秦'], yearMin: -221, yearMax: -207 },
+    { id: 'western_han', name: '西汉', keywords: ['西汉'], yearMin: -202, yearMax: 9 },
+    { id: 'eastern_han', name: '东汉', keywords: ['东汉'], yearMin: 25, yearMax: 220 },
+    { id: 'han', name: '汉', keywords: ['汉代', '汉朝', '汉'], yearMin: -202, yearMax: 220, timeline: false },
+    { id: 'three_kingdoms', name: '三国', keywords: ['三国', '曹魏'], yearMin: 220, yearMax: 280 },
+    { id: 'western_jin', name: '西晋', keywords: ['西晋'], yearMin: 265, yearMax: 316 },
+    { id: 'eastern_jin', name: '东晋', keywords: ['东晋'], yearMin: 317, yearMax: 420 },
+    { id: 'jin', name: '晋', keywords: ['晋代', '晋朝', '晋'], yearMin: 265, yearMax: 420, timeline: false },
+    { id: 'sixteen_kingdoms', name: '十六国', keywords: ['十六国', '后赵'], yearMin: 304, yearMax: 439 },
+    { id: 'northern_southern', name: '南北朝', keywords: ['南北朝', '北魏', '东魏', '西魏', '北齐', '北周', '北燕', '北朝', '南朝'], yearMin: 420, yearMax: 589 },
+    { id: 'sui', name: '隋', keywords: ['隋代', '隋朝', '隋'], yearMin: 581, yearMax: 618 },
+    { id: 'tang', name: '唐', keywords: ['唐代', '唐朝', '唐', '高句丽'], yearMin: 618, yearMax: 907 },
+    { id: 'five_dynasties', name: '五代', keywords: ['五代', '南唐', '后周'], yearMin: 907, yearMax: 960 },
+    { id: 'northern_song', name: '北宋', keywords: ['北宋'], yearMin: 960, yearMax: 1127 },
+    { id: 'southern_song', name: '南宋', keywords: ['南宋'], yearMin: 1127, yearMax: 1279 },
+    { id: 'song', name: '宋', keywords: ['宋代', '宋朝', '宋'], yearMin: 960, yearMax: 1279, timeline: false },
+    { id: 'western_xia', name: '西夏', keywords: ['西夏'], yearMin: 1038, yearMax: 1227, timeline: false },
+    { id: 'liao', name: '辽', keywords: ['辽代', '辽朝', '辽'], yearMin: 907, yearMax: 1125 },
+    { id: 'jin_dynasty', name: '金', keywords: ['金代', '金朝', '金'], yearMin: 1115, yearMax: 1234 },
+    { id: 'yuan', name: '元', keywords: ['元代', '元朝', '元'], yearMin: 1271, yearMax: 1368 },
+    { id: 'ming', name: '明', keywords: ['明代', '明朝', '明'], yearMin: 1368, yearMax: 1644 },
+    { id: 'qing', name: '清', keywords: ['清代', '清朝', '清'], yearMin: 1644, yearMax: 1912 },
+    { id: 'republic', name: '民国', keywords: ['民国', '近代'], yearMin: 1912, yearMax: 1949 },
+    { id: 'prc', name: '中华人民共和国', keywords: ['中华人民共和国'], yearMin: 1949, yearMax: 2030 }
+  ],
+
+  _eraColors: {
+    paleolithic: '#5D4037',
+    neolithic: '#8D6E63',
+    xia: '#F9A825',
+    shang: '#F57F17',
+    western_zhou: '#2E7D32',
+    eastern_zhou: '#388E3C',
+    spring_autumn: '#43A047',
+    warring_states: '#66BB6A',
+    zhou: '#1B5E20',
+    qin: '#7B1FA2',
+    western_han: '#C62828',
+    eastern_han: '#E53935',
+    han: '#B71C1C',
+    three_kingdoms: '#FF6D00',
+    western_jin: '#1565C0',
+    eastern_jin: '#1E88E5',
+    jin: '#0D47A1',
+    sixteen_kingdoms: '#00838F',
+    northern_southern: '#00695C',
+    sui: '#6A1B9A',
+    tang: '#E65100',
+    five_dynasties: '#FDD835',
+    northern_song: '#AD1457',
+    southern_song: '#880E4F',
+    song: '#C2185B',
+    western_xia: '#FF8F00',
+    liao: '#4527A0',
+    jin_dynasty: '#283593',
+    yuan: '#37474F',
+    ming: '#D84315',
+    qing: '#1A237E',
+    republic: '#616161',
+    prc: '#C62828'
+  },
+
+  _loadedProvinceData: new Set(),
+  _provinceMeta: null,
+  _trailRegistry: null,
+  _allBuildingsCache: null,
+  _allTagsCache: null,
+  _tagBuildingsCache: {},
+  _pendingLoads: {},
+  _map: null,
+  _markerCluster: null,
+  _activeEraFilter: 'all',
+  _activeCategoryFilter: 'all',
+  _mapMarkers: [],
+
+  async init() {
+    this.setupTheme();
+    this.setupEventListeners();
+    await this._loadMeta();
+    this.setupNavigation();
+    this.render();
+  },
+
+  async _loadMeta() {
+    try {
+      const [provincesRes, trailRes] = await Promise.all([
+        fetch('data/provinces.json'),
+        fetch('trail/registry.json')
+      ]);
+      this._provinceMeta = await provincesRes.json();
+      this._trailRegistry = await trailRes.json();
+    } catch (e) {
+      console.error('Failed to load meta data:', e);
+      this._provinceMeta = { provinces: [], protectionLabels: {} };
+      this._trailRegistry = [];
+    }
+  },
+
+  async _fetchJSON(url) {
+    if (this._cache.jsonData.has(url)) return this._cache.jsonData.get(url);
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (this._cache.jsonData.size >= this._cacheLimits.jsonData) {
+        this._cache.jsonData.delete(this._cache.jsonData.keys().next().value);
+      }
+      this._cache.jsonData.set(url, data);
+      return data;
+    } catch (e) {
+      console.error('Failed to fetch:', url, e);
+      return null;
+    }
+  },
+
+  async loadProvinceData(provinceId) {
+    if (this._loadedProvinceData.has(provinceId)) return this._cache.provinceData.get(provinceId);
+    if (this._pendingLoads[provinceId]) return this._pendingLoads[provinceId];
+    const fileName = provinceId === 'cross' ? 'cross-province.json' : `${provinceId}.json`;
+    const promise = this._fetchJSON(`data/${fileName}`).then(data => {
+      delete this._pendingLoads[provinceId];
+      if (data) {
+        this._loadedProvinceData.add(provinceId);
+        this._cache.provinceData.set(provinceId, data);
+        if (this._cache.provinceData.size > this._cacheLimits.provinceData) {
+          this._cache.provinceData.delete(this._cache.provinceData.keys().next().value);
+        }
+        this._allBuildingsCache = null;
+        this._allTagsCache = null;
+        this._tagBuildingsCache = {};
+      }
+      return data;
+    });
+    this._pendingLoads[provinceId] = promise;
+    return promise;
+  },
+
+  async loadProvinces(provinceIds) {
+    await Promise.all(provinceIds.map(id => this.loadProvinceData(id)));
+  },
+
+  async _ensureDataLoaded() {
+    if (this._loadedProvinceData.size === 0) {
+      const allIds = this._provinceMeta?.provinces?.map(p => p.id) || [];
+      await this.loadProvinces(allIds);
+    }
+  },
+
+  _initMap(container) {
+    if (this._map) { this._map.invalidateSize(); return; }
+    this._map = L.map(container, {
+      center: [35.5, 105.0],
+      zoom: 5,
+      zoomControl: true,
+      attributionControl: false
+    });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 18,
+      minZoom: 3
+    }).addTo(this._map);
+    this._markerCluster = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        let size = 'small';
+        if (count >= 100) size = 'large';
+        else if (count >= 20) size = 'medium';
+        return L.divIcon({
+          html: `<div class="map-cluster map-cluster-${size}"><span>${count}</span></div>`,
+          className: 'map-cluster-container',
+          iconSize: L.point(40, 40)
+        });
+      }
+    });
+    this._map.addLayer(this._markerCluster);
+  },
+
+  _destroyMap() {
+    if (this._map) {
+      this._map.remove();
+      this._map = null;
+      this._markerCluster = null;
+    }
+  },
+
+  async _loadMapMarkers() {
+    if (!this._markerCluster) return;
+    const allIds = [...(this._provinceMeta?.provinces?.map(p => p.id) || []), 'cross'];
+    const totalCountEl = document.getElementById('mapTotalCount');
+    if (totalCountEl) totalCountEl.textContent = allIds.length;
+    const batchSize = 5;
+    const loadedCount = document.getElementById('mapLoadedCount');
+    const addedNames = new Set();
+    let totalBuildings = 0;
+    const categoryCounts = {};
+
+    for (let i = 0; i < allIds.length; i += batchSize) {
+      if (!this._markerCluster) return;
+      const batch = allIds.slice(i, i + batchSize);
+      try { await Promise.all(batch.map(id => this.loadProvinceData(id))); } catch (_) {}
+
+      this._allBuildingsCache = null;
+      const allBuildings = this.getAllBuildings();
+
+      for (const b of allBuildings) {
+        const key = `${b.provinceId}_${b.district}_${b.name}`;
+        if (addedNames.has(key)) continue;
+        if (b.lat === undefined || b.lng === undefined) continue;
+        addedNames.add(key);
+        const marker = this._createMapMarker(b);
+        const eraId = this.getEarliestDynasty(b.era);
+        this._mapMarkers.push({ marker, categoryKey: marker._categoryKey, eraId });
+        // Apply current filters
+        if (this._passesMapFilters(marker._categoryKey, eraId)) {
+          this._markerCluster.addLayer(marker);
+        }
+        totalBuildings++;
+        const cat = this.getBuildingCategory(b).key;
+        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+      }
+
+      const loaded = Math.min(i + batchSize, allIds.length);
+      if (loadedCount) loadedCount.textContent = loaded;
+      const statTotal = document.getElementById('mapStatTotal');
+      const statLoaded = document.getElementById('mapStatLoaded');
+      const statCategories = document.getElementById('mapStatCategories');
+      if (statTotal) statTotal.textContent = totalBuildings;
+      if (statLoaded) statLoaded.textContent = loaded;
+      if (statCategories) statCategories.textContent = Object.keys(categoryCounts).length;
+    }
+
+    this._updateMapStats();
+
+    const mapOverlay = document.getElementById('mapLoadingOverlay');
+    if (mapOverlay) {
+      mapOverlay.style.opacity = '0';
+      setTimeout(() => { if (mapOverlay) mapOverlay.style.display = 'none'; }, 500);
+    }
+  },
+
+  _passesMapFilters(categoryKey, eraId) {
+    const catOk = this._activeCategoryFilter === 'all' || categoryKey === this._activeCategoryFilter;
+    const eraOk = this._activeEraFilter === 'all' || (eraId && eraId === this._activeEraFilter);
+    return catOk && eraOk;
+  },
+
+  _filterMapMarkers() {
+    if (!this._markerCluster || !this._mapMarkers) return;
+    this._markerCluster.clearLayers();
+    let visibleCount = 0;
+    for (const { marker, categoryKey, eraId } of this._mapMarkers) {
+      if (this._passesMapFilters(categoryKey, eraId)) {
+        this._markerCluster.addLayer(marker);
+        visibleCount++;
+      }
+    }
+    const statTotal = document.getElementById('mapStatTotal');
+    if (statTotal) statTotal.textContent = visibleCount;
+  },
+
+  _setCategoryFilter(categoryKey) {
+    this._activeCategoryFilter = categoryKey;
+    this._filterMapMarkers();
+    const legendEl = document.getElementById('mapLegend');
+    if (legendEl) {
+      legendEl.querySelectorAll('.map-legend-item').forEach(el => el.classList.remove('active'));
+      const activeEl = legendEl.querySelector(`[data-cat="${categoryKey}"]`);
+      if (activeEl) activeEl.classList.add('active');
+    }
+    this._updateMapStats();
+  },
+
+  _setEraFilter(eraId) {
+    this._activeEraFilter = eraId;
+    this._filterMapMarkers();
+    const timelineEl = document.getElementById('mapTimeline');
+    if (timelineEl) {
+      timelineEl.querySelectorAll('.era-timeline-block, .era-timeline-all').forEach(el => el.classList.remove('active'));
+      if (eraId === 'all') {
+        const allBtn = timelineEl.querySelector('.era-timeline-all');
+        if (allBtn) allBtn.classList.add('active');
+      } else {
+        const activeEl = timelineEl.querySelector(`[data-era="${eraId}"]`);
+        if (activeEl) activeEl.classList.add('active');
+      }
+    }
+    this._updateMapStats();
+  },
+
+  _updateMapStats() {
+    const totalEl = document.getElementById('mapStatTotal');
+    const labelEl = document.getElementById('mapStatLabel');
+    if (!totalEl) return;
+    let visible = 0;
+    const visibleProvinces = new Set();
+    for (const { marker, categoryKey, eraId } of this._mapMarkers) {
+      if (this._passesMapFilters(categoryKey, eraId)) {
+        visible++;
+        if (marker._provinceId) visibleProvinces.add(marker._provinceId);
+      }
+    }
+    totalEl.textContent = visible;
+    if (labelEl) {
+      const activeEra = this._activeEraFilter && this._activeEraFilter !== 'all' ? this.eras.find(e => e.id === this._activeEraFilter) : null;
+      const activeCat = this._activeCategoryFilter && this._activeCategoryFilter !== 'all' ? this.buildingCategories[this._activeCategoryFilter] : null;
+      const parts = [];
+      if (activeEra) parts.push(activeEra.name);
+      else parts.push('全部年代');
+      if (activeCat) parts.push(activeCat.label);
+      else parts.push('全部分类');
+      labelEl.textContent = parts.join(' · ');
+    }
+    const provEl = document.getElementById('mapStatProvinces');
+    if (provEl) provEl.textContent = visibleProvinces.size;
+  },
+
+  _createMapMarker(building) {
+    const category = this.getBuildingCategory(building);
+    const size = category.size || 20;
+    const isWorld = category.isWorldHeritage;
+    const worldClass = isWorld ? ' map-marker-world' : '';
+    const icon = L.divIcon({
+      html: `<div class="map-marker${worldClass}" style="background:${category.markerColor}; width:${size}px; height:${size}px;" title="${building.name}"><span>${category.icon}</span></div>`,
+      className: 'map-marker-container',
+      iconSize: [size + 4, size + 4],
+      iconAnchor: [(size + 4) / 2, (size + 4) / 2]
+    });
+    const marker = L.marker([building.lat, building.lng], { icon });
+    const protectionBadge = this.generateProtectionBadge(building);
+    const popupContent = `
+      <div class="map-popup">
+        <div class="map-popup-header" style="border-left:3px solid ${category.markerColor}; padding-left:8px;">
+          <strong>${category.icon} ${building.name}</strong>
+        </div>
+        <div class="map-popup-body">
+          <div class="map-popup-info">
+            <span class="map-popup-era">📅 ${building.era}</span>
+            <span class="map-popup-district">📍 ${building.districtName}</span>
+          </div>
+          ${protectionBadge ? `<div class="map-popup-badge">${protectionBadge}</div>` : ''}
+          <p class="map-popup-desc">${this.truncateText(building.description, 80)}</p>
+          <a href="${this.generateBuildingHash(building)}" class="map-popup-link" data-nav>查看详情 →</a>
+        </div>
+      </div>`;
+    marker.bindPopup(popupContent, { maxWidth: 280, className: 'map-popup-container' });
+    marker._categoryKey = category.key;
+    marker._provinceId = building.provinceId;
+    return marker;
+  },
+
+  getAllBuildings() {
+    if (this._allBuildingsCache) return this._allBuildingsCache;
+    const all = [];
+    for (const [provinceId, data] of this._cache.provinceData) {
+      const provinceName = this.getProvinceName(provinceId);
+      if (data.buildings) {
+        for (const b of data.buildings) {
+          all.push({ ...b, province: provinceName, provinceId });
+        }
+      }
+    }
+    this._allBuildingsCache = all;
+    return all;
+  },
+
+  getProvinceName(provinceId) {
+    if (provinceId === 'cross') return '跨省';
+    const p = this._provinceMeta?.provinces?.find(p => p.id === provinceId);
+    return p ? p.name : provinceId;
+  },
+
+  getProvinceById(provinceId) {
+    return this._provinceMeta?.provinces?.find(p => p.id === provinceId);
+  },
+
+  getProtectionLabel(provinceId) {
+    return this._provinceMeta?.protectionLabels?.[provinceId] || '全国重点文物保护单位';
+  },
+
+  getProvinceStyle(provinceId) {
+    return this.provinceStyles[provinceId] || { icon: '📍', color: '#3498db', bgColor: '#ebf5fb' };
+  },
+
+  getBuildingCategory(building) {
+    const type = building.type || '';
+    const categories = this.buildingCategories;
+    for (const [key, cat] of Object.entries(categories)) {
+      if (cat.matchTypes.includes(type)) {
+        const isWorldHeritage = (building.tags || []).includes('世界遗产');
+        const result = { ...cat, key };
+        if (isWorldHeritage) {
+          result.size = 26;
+          result.isWorldHeritage = true;
+        }
+        return result;
+      }
+    }
+    return { ...categories.other, key: 'other' };
+  },
+
+  getTagStyle(tagName, index) {
+    const cacheKey = `${tagName}_${index % this.colorPalette.length}`;
+    if (this._cache.tagStyles.has(cacheKey)) return this._cache.tagStyles.get(cacheKey);
+    const style = this.tagStyles[tagName] || { icon: '🏷️' };
+    const palette = this.colorPalette[index % this.colorPalette.length];
+    const result = { ...style, color: palette.color, bg: palette.bg };
+    if (this._cache.tagStyles.size >= this._cacheLimits.tagStyles) {
+      this._cache.tagStyles.delete(this._cache.tagStyles.keys().next().value);
+    }
+    this._cache.tagStyles.set(cacheKey, result);
+    return result;
+  },
+
+  getDistrictData(provinceId, districtId) {
+    const data = this._cache.provinceData.get(provinceId);
+    if (data?.districts?.[districtId]) {
+      return { id: districtId, ...data.districts[districtId] };
+    }
+    return null;
+  },
+
+  getBuildingsByDistrict(provinceId, districtId) {
+    const data = this._cache.provinceData.get(provinceId);
+    if (!data?.buildings) return [];
+    const provinceName = this.getProvinceName(provinceId);
+    return data.buildings
+      .filter(b => b.district === districtId)
+      .map(b => ({ ...b, province: provinceName, provinceId }));
+  },
+
+  getAllDistricts(provinceId) {
+    const data = this._cache.provinceData.get(provinceId);
+    if (!data?.districts) return [];
+    return Object.entries(data.districts).map(([id, d]) => ({ id, ...d }));
+  },
+
+  findBuildingByFullPath(fullPath) {
+    if (this._cache.buildingByName.has(fullPath)) return this._cache.buildingByName.get(fullPath);
+    const allBuildings = this.getAllBuildings();
+    let building = allBuildings.find(b => b.name === fullPath);
+    if (!building) {
+      building = allBuildings.find(b => {
+        const p = `${b.province || ''}${b.districtName || ''}${b.name}`;
+        return p === fullPath;
+      });
+    }
+    if (building) {
+      this._cache.buildingByName.set(fullPath, building);
+      if (this._cache.buildingByName.size > this._cacheLimits.buildingByName) {
+        this._cache.buildingByName.delete(this._cache.buildingByName.keys().next().value);
+      }
+    }
+    return building;
+  },
+
+  generateBuildingHash(building) {
+    const provinceName = building.province || this.getProvinceName(building.provinceId);
+    const fullPath = `${provinceName}${building.districtName}${building.name}`;
+    return `?page=building&name=${encodeURIComponent(fullPath)}`;
+  },
+
+  navigateTo(url) {
+    window.history.pushState({}, '', url);
+    this.parseParams();
+    this.render();
+  },
+
+  generateProtectionBadge(building) {
+    const cacheKey = `${building.worldHeritage}_${building.worldHeritageYear}_${building.protectionLevel}_${building.protectionBatch}`;
+    if (this._cache.protectionBadges.has(cacheKey)) return this._cache.protectionBadges.get(cacheKey);
+    let result = '';
+    if (building.worldHeritage) {
+      result = `<span class="protection-badge heritage">🌍 世界遗产${building.worldHeritageYear ? '·' + building.worldHeritageYear : ''}</span>`;
+    } else if (building.protectionLevel && building.protectionLevel.includes('全国重点文物保护单位')) {
+      result = `<span class="protection-badge national">${building.protectionBatch || '全国重点'}</span>`;
+    }
+    if (this._cache.protectionBadges.size >= this._cacheLimits.protectionBadges) {
+      this._cache.protectionBadges.delete(this._cache.protectionBadges.keys().next().value);
+    }
+    this._cache.protectionBadges.set(cacheKey, result);
+    return result;
+  },
+
+  truncateText(text, maxLength, suffix = '...') {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    const cacheKey = `${text}_${maxLength}_${suffix}`;
+    if (this._cache.truncatedTexts.has(cacheKey)) return this._cache.truncatedTexts.get(cacheKey);
+    const result = text.substring(0, maxLength) + suffix;
+    if (this._cache.truncatedTexts.size >= this._cacheLimits.truncatedTexts) {
+      this._cache.truncatedTexts.delete(this._cache.truncatedTexts.keys().next().value);
+    }
+    this._cache.truncatedTexts.set(cacheKey, result);
+    return result;
+  },
+
+  shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  },
+
+  _resolveBuildingRef(buildingRef) {
+    if (!buildingRef) return null;
+    if (buildingRef.embedded) return buildingRef.embedded;
+    const allBuildings = this.getAllBuildings();
+    const byName = allBuildings.find(b => b.name === buildingRef.name);
+    if (!byName) return null;
+    if (buildingRef.province && byName.provinceId !== buildingRef.province) {
+      const byProvince = allBuildings.find(b => b.name === buildingRef.name && b.provinceId === buildingRef.province);
+      return byProvince || byName;
+    }
+    return byName;
+  },
+
+  setupTheme() {
+    document.documentElement.setAttribute('data-theme', this.state.theme);
+  },
+
+  toggleTheme() {
+    this.state.theme = this.state.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', this.state.theme);
+    localStorage.setItem('theme', this.state.theme);
+  },
+
+  setupEventListeners() {
+    document.querySelector('.theme-toggle')?.addEventListener('click', () => this.toggleTheme());
+    document.querySelector('.nav-toggle')?.addEventListener('click', () => {
+      document.querySelector('.nav-menu')?.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+      const card = e.target.closest('.building-card');
+      if (card) {
+        const url = card.getAttribute('data-href');
+        if (url) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.navigateTo(url);
+        }
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('[data-nav]');
+      if (link) {
+        e.preventDefault();
+        this.navigateTo(link.getAttribute('href') || link.getAttribute('data-nav'));
+      }
+    });
+
+    window.addEventListener('popstate', () => {
+      this.parseParams();
+      this.render().catch(() => {});
+    });
+  },
+
+  setupNavigation() {
+    this.parseParams();
+  },
+
+  parseParams() {
+    const params = new URLSearchParams(window.location.search);
+    this.state.currentView = params.get('page') || 'home';
+    this.state.currentProvince = params.get('id') || params.get('pid') || null;
+    this.state.currentDistrict = params.get('did') || null;
+    this.state.currentBuildingName = params.get('name') || null;
+    this.state.currentTag = params.get('name') && this.state.currentView === 'tag' ? params.get('name') : null;
+    this.state.currentTrailId = params.get('id') && (this.state.currentView === 'trail-detail') ? params.get('id') : null;
+    this.state.currentTrailType = params.get('type') || null;
+    document.querySelector('.nav-menu')?.classList.remove('active');
+  },
+
+  async render() {
+    const breadcrumb = document.querySelector('.breadcrumb');
+    if (breadcrumb) {
+      breadcrumb.style.display = this.state.currentView === 'map' ? 'none' : '';
+    }
+    this.updateBreadcrumb();
+    this.updateActiveNav();
+    const mainContent = document.getElementById('mainContent');
+    if (!mainContent) return;
+    window.scrollTo(0, 0);
+    this._injectStructuredData();
+
+    const view = this.state.currentView;
+    if (view !== 'home' && view !== 'map') this._destroyMap();
+    switch (view) {
+      case 'home': await this.renderHome(mainContent); break;
+      case 'map': await this.renderMap(mainContent); break;
+      case 'provinces': this.renderProvinces(mainContent); break;
+      case 'province': await this.renderProvince(mainContent); break;
+      case 'district': await this.renderDistrict(mainContent); break;
+      case 'building': await this.renderBuilding(mainContent); break;
+      case 'tags': this.renderTags(mainContent); break;
+      case 'tag': this.renderTagResults(mainContent); break;
+      case 'search': this.renderSearchPage(mainContent); break;
+      case 'cross': await this.renderCrossProvince(mainContent); break;
+      case 'trail': this.renderTrailList(mainContent); break;
+      case 'trail-detail': await this.renderTrailDetail(mainContent); break;
+      default: await this.renderHome(mainContent);
+    }
+  },
+
+  _injectStructuredData() {
+    let script = document.getElementById('ld-json');
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'ld-json';
+      script.type = 'application/ld+json';
+      document.head.appendChild(script);
+    }
+    const breadcrumbs = [];
+    const items = document.querySelectorAll('#breadcrumbList li');
+    items.forEach((li, i) => {
+      const a = li.querySelector('a');
+      const name = li.textContent.trim();
+      if (a) {
+        breadcrumbs.push({ '@type': 'ListItem', position: i + 1, name, item: new URL(a.href, location.origin).href });
+      } else {
+        breadcrumbs.push({ '@type': 'ListItem', position: i + 1, name });
+      }
+    });
+    const ld = { '@context': 'https://schema.org', '@graph': [] };
+    if (breadcrumbs.length > 1) {
+      ld['@graph'].push({ '@type': 'BreadcrumbList', itemListElement: breadcrumbs });
+    }
+    const view = this.state.currentView;
+    if (view === 'building' && this.state.currentBuildingName) {
+      const building = this.findBuildingByFullPath(this.state.currentBuildingName);
+      if (building) {
+        ld['@graph'].push({
+          '@type': 'LandmarksOrHistoricalBuildings',
+          name: building.name,
+          description: (building.description || '').substring(0, 200),
+          location: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: building.districtName, addressRegion: building.province } }
+        });
+      }
+    } else if (view === 'province' && this.state.currentProvince) {
+      const p = this.getProvinceById(this.state.currentProvince);
+      if (p) {
+        ld['@graph'].push({ '@type': 'AdministrativeArea', name: p.name, description: `${p.name}的全国重点文物保护单位` });
+      }
+    }
+    script.textContent = JSON.stringify(ld);
+  },
+
+  updateBreadcrumb() {
+    const breadcrumbList = document.getElementById('breadcrumbList');
+    if (!breadcrumbList) return;
+    let items = [{ name: '🏠 首页', href: '?page=home' }];
+    const v = this.state.currentView;
+
+    if (v === 'provinces') items.push({ name: '🗺️ 省份' });
+    else if (v === 'province' && this.state.currentProvince) {
+      items.push({ name: '🗺️ 省份', href: '?page=provinces' });
+      const province = this.getProvinceById(this.state.currentProvince);
+      if (province) items.push({ name: `${this.getProvinceStyle(this.state.currentProvince).icon} ${province.name}` });
+    } else if (v === 'district') {
+      items.push({ name: '🗺️ 省份', href: '?page=provinces' });
+      const province = this.getProvinceById(this.state.currentProvince);
+      if (province) {
+        items.push({ name: `${this.getProvinceStyle(this.state.currentProvince).icon} ${province.name}`, href: `?page=province&id=${province.id}` });
+        const district = this.getDistrictData(this.state.currentProvince, this.state.currentDistrict);
+        if (district) items.push({ name: `📍 ${district.name}` });
+      }
+    } else if (v === 'building' && this.state.currentBuildingName) {
+      const building = this.findBuildingByFullPath(this.state.currentBuildingName);
+      items.push({ name: '🗺️ 省份', href: '?page=provinces' });
+      if (building) {
+        const pStyle = this.getProvinceStyle(building.provinceId);
+        if (building.provinceId === 'cross') {
+          items.push({ name: `${pStyle.icon} ${building.province}`, href: '?page=cross' });
+          items.push({ name: `📍 ${building.districtName}`, href: '?page=cross' });
+        } else {
+          items.push({ name: `${pStyle.icon} ${building.province}`, href: `?page=province&id=${building.provinceId}` });
+          items.push({ name: `📍 ${building.districtName}`, href: `?page=district&pid=${building.provinceId}&did=${building.district}` });
+        }
+        items.push({ name: `🏛️ ${building.name}` });
+      }
+    } else if (v === 'tags') items.push({ name: '🏷️ 标签' });
+    else if (v === 'tag') {
+      items.push({ name: '🏷️ 标签', href: '?page=tags' });
+      items.push({ name: `${this.getTagStyle(this.state.currentTag, 0).icon} ${this.state.currentTag}` });
+    } else if (v === 'search') items.push({ name: '🔍 搜索' });
+    else if (v === 'cross') items.push({ name: '🌊 跨省文物保护单位' });
+    else if (v === 'trail') items.push({ name: '👣 足迹' });
+    else if (v === 'map') items.push({ name: '🗺️ 地图' });
+    else if (v === 'trail-detail' && this.state.currentTrailId) {
+      items.push({ name: '👣 足迹', href: '?page=trail' });
+      const trail = this._trailRegistry?.find(t => t.id === this.state.currentTrailId);
+      if (trail) items.push({ name: `${trail.icon} ${trail.title}` });
+    }
+
+    breadcrumbList.innerHTML = items.map((item, index) => {
+      if (index === items.length - 1 || !item.href) {
+        return `<li class="active">${item.name}</li>`;
+      }
+      return `<li><a href="${item.href}" data-nav>${item.name}</a></li>`;
+    }).join('');
+  },
+
+  updateActiveNav() {
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.remove('active');
+      const href = link.getAttribute('href');
+      const v = this.state.currentView;
+      if ((v === 'trail' || v === 'trail-detail') && href === '?page=trail') link.classList.add('active');
+      else if (href === `?page=${v}`) link.classList.add('active');
+    });
+  },
+
+  searchBuildings(query) {
+    const allBuildings = this.getAllBuildings();
+    const lowerQuery = query.toLowerCase().trim();
+    if (!lowerQuery) return [];
+    return allBuildings.filter(b => {
+      return (b.name && b.name.toLowerCase().includes(lowerQuery)) ||
+        (b.location && b.location.toLowerCase().includes(lowerQuery)) ||
+        (b.era && b.era.toLowerCase().includes(lowerQuery)) ||
+        (b.type && b.type.toLowerCase().includes(lowerQuery)) ||
+        (b.districtName && b.districtName.toLowerCase().includes(lowerQuery)) ||
+        (b.tags && b.tags.some(tag => tag && tag.toLowerCase().includes(lowerQuery))) ||
+        (b.description && b.description.toLowerCase().includes(lowerQuery)) ||
+        (b.history && b.history.toLowerCase().includes(lowerQuery)) ||
+        (b.architecture && b.architecture.toLowerCase().includes(lowerQuery)) ||
+        (b.features && b.features.toLowerCase().includes(lowerQuery));
+    }).map(b => {
+      const reasons = [];
+      if (b.name && b.name.toLowerCase().includes(lowerQuery)) reasons.push('名称匹配');
+      if (b.location && b.location.toLowerCase().includes(lowerQuery)) reasons.push('地点匹配');
+      if (b.era && b.era.toLowerCase().includes(lowerQuery)) reasons.push('年代匹配');
+      if (b.tags && b.tags.some(tag => tag && tag.toLowerCase().includes(lowerQuery))) reasons.push('标签匹配');
+      if (b.description && b.description.toLowerCase().includes(lowerQuery)) reasons.push('描述匹配');
+      if (b.history && b.history.toLowerCase().includes(lowerQuery)) reasons.push('历史匹配');
+      return { ...b, matchReasons: reasons };
+    });
+  },
+
+  getBuildingsByTag(tag) {
+    if (this._tagBuildingsCache[tag]) return this._tagBuildingsCache[tag];
+    const result = this.getAllBuildings().filter(b => b.tags && b.tags.some(t => t === tag));
+    this._tagBuildingsCache[tag] = result;
+    return result;
+  },
+
+  getAllTags() {
+    if (this._allTagsCache) return this._allTagsCache;
+    const tagCount = {};
+    this.getAllBuildings().forEach(b => {
+      if (b.tags) b.tags.forEach(tag => { tagCount[tag] = (tagCount[tag] || 0) + 1; });
+    });
+    this._allTagsCache = Object.entries(tagCount)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+    return this._allTagsCache;
+  },
+
+  createBuildingCard(building, shortDescLen = 60) {
+    const cacheKey = `${building.provinceId}_${building.district}_${building.name}`;
+    if (this._cache.buildingCards.has(cacheKey)) return this._cache.buildingCards.get(cacheKey);
+    const href = this.generateBuildingHash(building);
+    const provinceStyle = this.getProvinceStyle(building.provinceId);
+    const protectionBadge = this.generateProtectionBadge(building);
+    const shortDesc = this.truncateText(building.description, shortDescLen, '');
+    const priorityTags = ['世界遗产', '古建筑', '近代建筑', '寺庙', '宫殿', '园林', '陵墓', '石窟', '塔', '桥梁', '革命遗址', '名人故居'];
+    const tags = building.tags || [];
+    const sortedTags = [...tags].sort((a, b) => {
+      const ap = priorityTags.indexOf(a), bp = priorityTags.indexOf(b);
+      if (ap !== -1 && bp === -1) return -1;
+      if (ap === -1 && bp !== -1) return 1;
+      return 0;
+    });
+
+    const cardHTML = `
+      <div class="building-card" data-href="${href}" style="border-left-color: ${provinceStyle.color};">
+        <div class="building-card-header" style="background: ${provinceStyle.bgColor};">
+          <div class="building-card-header-left">
+            <div class="building-province-icon" style="color: ${provinceStyle.color};">${provinceStyle.icon}</div>
+            <div class="building-district">${building.districtName}</div>
+          </div>
+          ${protectionBadge}
+        </div>
+        <div class="building-content">
+          <h3 class="building-title">${building.name}</h3>
+          <div class="building-meta">
+            <span class="building-era">📅 ${building.era}</span>
+            <span class="building-type">${this.truncateText(building.type, 12)}</span>
+          </div>
+          <p class="building-desc">${shortDesc}</p>
+          <div class="building-tags">
+            ${sortedTags.slice(0, 5).map((tag, idx) => {
+              const ts = this.getTagStyle(tag, idx);
+              return `<span class="building-tag" style="background: ${ts.bg}; color: ${ts.color};">${ts.icon} ${tag}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+
+    if (this._cache.buildingCards.size >= this._cacheLimits.buildingCards) {
+      this._cache.buildingCards.delete(this._cache.buildingCards.keys().next().value);
+    }
+    this._cache.buildingCards.set(cacheKey, cardHTML);
+    return cardHTML;
+  },
+
+  createSearchResultCard(building) {
+    const cacheKey = 'search_' + building.name;
+    if (this._cache.searchCards.has(cacheKey)) return this._cache.searchCards.get(cacheKey);
+    const href = this.generateBuildingHash(building);
+    const provinceStyle = this.getProvinceStyle(building.provinceId);
+    const protectionBadge = this.generateProtectionBadge(building);
+    const shortDesc = this.truncateText(building.description, 50);
+    const matchReasonsHtml = building.matchReasons ?
+      `<div class="match-reasons">${building.matchReasons.map(r => `<span class="match-reason">${r}</span>`).join('')}</div>` : '';
+    const tags = building.tags || [];
+
+    const cardHTML = `
+      <div class="building-card search-result-card" data-href="${href}" style="border-left-color: ${provinceStyle.color};">
+        <div class="building-card-header" style="background: ${provinceStyle.bgColor};">
+          <div class="building-card-header-left">
+            <div class="building-province-icon" style="color: ${provinceStyle.color};">${provinceStyle.icon}</div>
+            <div class="building-district">${building.districtName}</div>
+          </div>
+          ${protectionBadge}
+        </div>
+        <div class="building-content">
+          <h3 class="building-title">${building.name}</h3>
+          ${matchReasonsHtml}
+          <div class="building-meta">
+            <span class="building-era">📅 ${building.era}</span>
+            <span class="building-type">${this.truncateText(building.type, 12)}</span>
+          </div>
+          <p class="building-desc">${shortDesc}</p>
+          <div class="building-tags">
+            ${tags.slice(0, 4).map((tag, idx) => {
+              const ts = this.getTagStyle(tag, idx);
+              return `<span class="building-tag" style="background: ${ts.bg}; color: ${ts.color};">${ts.icon} ${tag}</span>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+
+    if (this._cache.searchCards.size >= this._cacheLimits.searchCards) {
+      this._cache.searchCards.delete(this._cache.searchCards.keys().next().value);
+    }
+    this._cache.searchCards.set(cacheKey, cardHTML);
+    return cardHTML;
+  },
+
+  getRelatedBuildings(building, limit = 4) {
+    const allBuildings = this.getAllBuildings();
+    const related = [];
+    const buildingTags = building.tags || [];
+    const sameDistrict = allBuildings.filter(b => b.district === building.district && b.name !== building.name);
+    related.push(...sameDistrict);
+    if (related.length < limit) {
+      const sameTags = allBuildings.filter(b => {
+        if (b.name === building.name || related.some(r => r.name === b.name)) return false;
+        return (b.tags && buildingTags.some(tag => b.tags.includes(tag)));
+      });
+      related.push(...sameTags);
+    }
+    if (related.length < limit) {
+      const sameEra = allBuildings.filter(b => {
+        if (b.name === building.name || related.some(r => r.name === b.name)) return false;
+        return b.era && b.era === building.era;
+      });
+      related.push(...sameEra);
+    }
+    return this.shuffleArray(related).slice(0, limit);
+  },
+
+  async renderHome(container) {
+    this._destroyMap();
+
+    container.innerHTML = `
+      <div class="container"><div class="loading"><div class="loading-icon">🏛️</div><div>正在加载精彩内容...</div></div></div>`;
+
+    await this._renderHomeTrails(container);
+  },
+
+  async renderMap(container) {
+    this._destroyMap();
+    this._activeEraFilter = 'all';
+    this._activeCategoryFilter = 'all';
+
+    const allProvinceIds = [...(this._provinceMeta?.provinces?.map(p => p.id) || []), 'cross'];
+    await Promise.all(allProvinceIds.map(id => this.loadProvinceData(id)));
+    this._allBuildingsCache = null;
+    this._mapMarkers = [];
+
+    // Precompute dynasty building counts
+    const dynastyBuildings = {};
+    const allB = this.getAllBuildings();
+    for (const b of allB) {
+      const did = this.getEarliestDynasty(b.era);
+      if (did) {
+        if (!dynastyBuildings[did]) dynastyBuildings[did] = [];
+        dynastyBuildings[did].push(b);
+      }
+    }
+
+    container.innerHTML = `
+      <div class="map-page">
+        <div class="map-timeline-bar" id="mapTimeline">
+          <div class="era-timeline-all active" data-era="all">全部</div>
+          <div class="era-timeline-track">
+            ${this.eras.filter(e => e.timeline !== false).map((e) => {
+              const count = dynastyBuildings[e.id]?.length || 0;
+              const color = this._eraColors[e.id] || '#888';
+              const startYr = isFinite(e.yearMin) ? e.yearMin : -50000;
+              const rawSpan = Math.max(1, e.yearMax - startYr);
+              const exponent = e.yearMax < -1000 ? 0.18 : 0.32;
+              const flexVal = Math.max(3, Math.min(14, Math.pow(rawSpan, exponent)));
+              return `<div class="era-timeline-block${count === 0 ? ' empty' : ''}"
+                data-era="${e.id}"
+                style="flex:${flexVal}; background:${color};"
+                title="${e.name}（${count}处）">
+                <span class="era-timeline-label">${e.name}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="map-legend" id="mapLegend">
+          <div class="map-legend-item active" data-cat="all">
+            <span class="map-legend-dot" style="background:#666;"></span>
+            <span class="map-legend-label">全部分类</span>
+          </div>
+          ${Object.entries(this.buildingCategories).map(([key, cat]) =>
+            `<div class="map-legend-item" data-cat="${key}">
+              <span class="map-legend-dot" style="background:${cat.markerColor};"></span>
+              <span class="map-legend-label">${cat.icon} ${cat.label}</span>
+            </div>`
+          ).join('')}
+        </div>
+
+        <div class="map-stats-bar">
+          <div class="map-stats-inner">
+            <div class="map-stat-item">
+              <span class="map-stat-label" id="mapStatLabel">全部年代 · 全部分类</span>
+              <span class="map-stat-num" id="mapStatTotal">0</span>
+            </div>
+            <span class="map-stat-sep">·</span>
+            <div class="map-stat-item">
+              <span class="map-stat-label">覆盖省份</span>
+              <span class="map-stat-num" id="mapStatProvinces">${this._provinceMeta?.provinces?.length || 0}</span>
+            </div>
+            <span class="map-stat-sep">·</span>
+            <div class="map-stat-item">
+              <span class="map-stat-label">已加载</span>
+              <span class="map-stat-num" id="mapStatLoaded">0</span>
+            </div>
+          </div>
+          <span class="map-stats-tip">⚠️ 港澳台建筑位置为近似坐标</span>
+        </div>
+
+        <div class="map-full-wrapper">
+          <div id="mapFull" class="map-full"></div>
+          <div class="map-loading-overlay" id="mapLoadingOverlay">
+            <div class="map-loading-content">
+              <div class="map-loading-icon">🛰️</div>
+              <div class="map-loading-text">正在加载数据...</div>
+              <div class="map-loading-count"><span id="mapLoadedCount">0</span> / <span id="mapTotalCount">${allProvinceIds.length}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    // --- Era timeline click handler ---
+    const timeline = document.getElementById('mapTimeline');
+    if (timeline) {
+      timeline.addEventListener('click', e => {
+        const allBtn = e.target.closest('.era-timeline-all');
+        const block = e.target.closest('.era-timeline-block');
+        if (allBtn) { this._setEraFilter('all'); return; }
+        if (!block || block.classList.contains('empty')) return;
+        const eraId = block.dataset.era;
+        if (eraId) this._setEraFilter(eraId);
+      });
+    }
+
+    // --- Category filter click handler ---
+    const legendEl = document.getElementById('mapLegend');
+    if (legendEl) {
+      legendEl.addEventListener('click', e => {
+        const item = e.target.closest('.map-legend-item');
+        if (!item) return;
+        const cat = item.dataset.cat;
+        legendEl.querySelectorAll('.map-legend-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        this._setCategoryFilter(cat);
+      });
+    }
+
+    const mapEl = document.getElementById('mapFull');
+    if (mapEl) {
+      this._initMap(mapEl);
+      this._loadMapMarkers();
+    }
+  },
+
+  async _renderHomeTrails(container) {
+    const trailRegistry = this._trailRegistry || [];
+    const selectedTrails = this.shuffleArray([...trailRegistry]).slice(0, 3);
+
+    if (selectedTrails.length === 0) {
+      return;
+    }
+
+    const trailDataArr = await Promise.all(selectedTrails.map(t => this._fetchJSON(`trail/${t.fileName}`)));
+    const validTrails = [];
+    for (let i = 0; i < selectedTrails.length; i++) {
+      const data = trailDataArr[i];
+      if (data) {
+        const content = data.story || data.route;
+        if (content) validTrails.push({ ...selectedTrails[i], data, content });
+      }
+    }
+
+    if (validTrails.length === 0) return;
+
+    const typeLabels = { game: '🎮 游戏', story: '📚 故事', route: '🗺️ 路线' };
+
+    let sectionsHTML = '';
+    const loadTasks = [];
+
+    validTrails.forEach((trail, index) => {
+      const content = trail.content;
+      const chapters = content.chapters || content.stops || [];
+      if (chapters.length === 0) return;
+      const randomChapter = chapters[Math.floor(Math.random() * chapters.length)];
+      const paragraphs = randomChapter.content.split('\n\n').filter(p => p.trim()).slice(0, 2);
+      const containerId = `home-section-buildings-${index}`;
+
+      sectionsHTML += `
+        <div class="home-topic-section" onclick="App.navigateTo('?page=trail-detail&id=${trail.id}')" style="${index > 0 ? 'margin-top: 2rem;' : ''}">
+          <div class="home-topic-header" style="display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.875rem; padding-bottom: 0.625rem; border-bottom: 2px solid ${trail.color}30; cursor: pointer;">
+            <span style="font-size: 1.5rem;">${trail.icon}</span>
+            <div>
+              <div style="font-size: 1.0625rem; font-weight: 700; color: var(--text-primary);">${trail.title}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${typeLabels[trail.type] || ''} · ${trail.subtitle}</div>
+            </div>
+          </div>
+          <div class="home-chapter-layout">
+            <div class="home-chapter-content">
+              <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem 0;">
+                <span>${randomChapter.icon}</span> ${randomChapter.title}
+              </h3>
+              <div style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">
+                ${paragraphs.map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}
+              </div>
+            </div>
+            <div class="home-featured-buildings" id="${containerId}">
+              <div style="flex:1;min-width:0;padding:1rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">🏛️ 加载中...</div>
+            </div>
+          </div>
+        </div>`;
+
+      loadTasks.push({ trail, chapter: randomChapter, containerId, index });
+    });
+
+    const trailContainer = container.querySelector('.container');
+    if (trailContainer) {
+      trailContainer.innerHTML = sectionsHTML;
+    }
+
+    for (const task of loadTasks) {
+      this._loadHomeFeaturedBuildings(task.trail, task.chapter, task.containerId);
+    }
+  },
+
+  async _loadHomeFeaturedBuildings(trail, chapter, containerId) {
+    const provincesToLoad = new Set();
+    if (chapter.buildings) {
+      chapter.buildings.forEach(b => { if (b?.province) provincesToLoad.add(b.province); });
+    }
+    if (provincesToLoad.size > 0) await this.loadProvinces([...provincesToLoad]);
+
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (chapter.buildings?.length > 0) {
+      const shuffled = this.shuffleArray([...chapter.buildings]);
+      const featured = shuffled.slice(0, 2)
+        .map(b => this._resolveBuildingRef(b))
+        .filter(b => b !== null);
+
+      if (featured.length > 0) {
+        container.innerHTML = featured.map(b => `
+          <div class="home-featured-building" onclick="event.stopPropagation(); App.navigateTo('${this.generateBuildingHash(b)}')">
+            ${this.createBuildingCard(b)}
+          </div>`).join('');
+      } else {
+        container.style.display = 'none';
+      }
+    } else {
+      container.style.display = 'none';
+    }
+  },
+
+  renderProvinces(container) {
+    const crossStyle = this.getProvinceStyle('cross');
+    const provinces = this._provinceMeta?.provinces || [];
+    container.innerHTML = `
+      <div class="container">
+        <h2 class="section-title"><span class="section-icon">🗺️</span> 省份</h2>
+        <div class="province-grid">
+          ${provinces.map(province => {
+            const style = this.getProvinceStyle(province.id);
+            return `<div class="province-card ${province.count > 0 ? 'has-data' : 'no-data'}" data-nav href="?page=province&id=${province.id}" style="border-left-color: ${style.color};">
+              <div class="province-icon" style="background: ${style.bgColor}; color: ${style.color};">${style.icon}</div>
+              <div class="province-info">
+                <div class="province-name">${province.name}</div>
+                <div class="province-count">${province.count > 0 ? province.count + '处' : '暂无数据'}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-light);">
+          <h3 class="section-title" style="font-size: 1rem;"><span class="section-icon">🌊</span> 跨省文物保护单位</h3>
+          <div class="province-card" data-nav href="?page=cross" style="border-left-color: ${crossStyle.color}; max-width: 400px;">
+            <div class="province-icon" style="background: ${crossStyle.bgColor}; color: ${crossStyle.color};">${crossStyle.icon}</div>
+            <div class="province-info">
+              <div class="province-name">跨省文物保护单位</div>
+              <div class="province-count">点击查看全部</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  },
+
+  async renderProvince(container) {
+    const provinceId = this.state.currentProvince;
+    const province = this.getProvinceById(provinceId);
+    const provinceStyle = this.getProvinceStyle(provinceId);
+
+    if (!province || province.count === 0) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">暂无数据</div><p>${province ? province.name : '该省份'}的文物保护单位数据正在整理中</p></div></div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="container"><div class="loading"><div class="loading-icon">${provinceStyle.icon}</div><div>正在加载${province.name}数据...</div></div></div>`;
+
+    const data = await this.loadProvinceData(provinceId);
+    if (!data) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">数据加载失败</div><p>无法加载${province.name}的数据</p></div></div>`;
+      return;
+    }
+
+    const districts = this.getAllDistricts(provinceId);
+    const allBuildings = this.getAllBuildings().filter(b => b.provinceId === provinceId);
+    const buildingsByDistrict = {};
+    allBuildings.forEach(b => {
+      if (!buildingsByDistrict[b.district]) buildingsByDistrict[b.district] = [];
+      buildingsByDistrict[b.district].push(b);
+    });
+
+    const districtsWithData = districts.filter(d => {
+      const b = buildingsByDistrict[d.id];
+      return b && b.length > 0;
+    });
+
+    const getEraSummary = (buildings) => {
+      const eras = {};
+      buildings.forEach(b => { if (b.era) eras[b.era] = (eras[b.era] || 0) + 1; });
+      return Object.entries(eras).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([era, count]) => `${era}(${count})`).join(' · ');
+    };
+
+    const getTagSummary = (buildings) => {
+      const tags = new Set();
+      buildings.forEach(b => { if (b.tags) b.tags.forEach(tag => tags.add(tag)); });
+      return this.shuffleArray([...tags]).slice(0, 7);
+    };
+
+    const protectionLabel = this.getProtectionLabel(provinceId);
+
+    container.innerHTML = `
+      <div class="container">
+        <div class="province-header" style="background: linear-gradient(135deg, ${provinceStyle.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${provinceStyle.color}25;">
+          <div class="province-header-icon" style="background: ${provinceStyle.color};">${provinceStyle.icon}</div>
+          <div class="province-header-info">
+            <h2 class="section-title" style="margin: 0;">${province.name}</h2>
+            <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">共有 <strong style="color: ${provinceStyle.color};">${province.count}</strong> 处${protectionLabel}</p>
+          </div>
+        </div>
+        <div class="district-grid-cards">
+          ${districtsWithData.map(district => {
+            const districtBuildings = buildingsByDistrict[district.id] || [];
+            const eraSummary = getEraSummary(districtBuildings);
+            const tagSummary = getTagSummary(districtBuildings);
+            const hasHeritage = districtBuildings.some(b => b.worldHeritage);
+            const shuffledBuildings = this.shuffleArray([...districtBuildings]);
+            const featuredBuildings = shuffledBuildings.slice(0, 7);
+            return `
+              <div class="district-grid-card" data-nav href="?page=district&pid=${provinceId}&did=${district.id}" style="border-top-color: ${provinceStyle.color};">
+                <div class="district-grid-card-header">
+                  <span class="district-grid-card-name">${district.name}</span>
+                  ${hasHeritage ? '<span class="district-grid-heritage">🌍</span>' : ''}
+                </div>
+                <div class="district-grid-card-count">${districtBuildings.length} 处${protectionLabel}</div>
+                ${eraSummary ? `<div class="district-grid-card-eras">${eraSummary}</div>` : ''}
+                <div class="district-grid-card-examples">${featuredBuildings.map(b => `<div class="district-grid-card-example">🏛️ ${b.name}</div>`).join('')}</div>
+                <div class="district-grid-card-tags">
+                  ${tagSummary.map((tag, idx) => {
+                    const ts = this.getTagStyle(tag, idx);
+                    return `<span class="district-grid-tag" style="background: ${ts.bg}; color: ${ts.color};">${ts.icon} ${tag}</span>`;
+                  }).join('')}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  },
+
+  async renderDistrict(container) {
+    const provinceId = this.state.currentProvince;
+    const districtId = this.state.currentDistrict;
+    await this.loadProvinceData(provinceId);
+
+    const province = this.getProvinceById(provinceId);
+    const district = this.getDistrictData(provinceId, districtId);
+    const provinceStyle = this.getProvinceStyle(provinceId);
+
+    if (!district) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">📍</div><div class="empty-state-title">未找到该区县</div></div></div>`;
+      return;
+    }
+
+    const buildings = this.getBuildingsByDistrict(provinceId, districtId);
+    const protectionLabel = this.getProtectionLabel(provinceId);
+
+    container.innerHTML = `
+      <div class="container">
+        <div class="district-header" style="background: linear-gradient(135deg, ${provinceStyle.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${provinceStyle.color}25;">
+          <div class="district-header-icon" style="background: ${provinceStyle.color};">📍</div>
+          <div class="district-header-info">
+            <h2 class="section-title" style="margin: 0;">${province.name} - ${district.name}</h2>
+            <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">共有 <strong style="color: ${provinceStyle.color};">${district.count}</strong> 处${protectionLabel}</p>
+          </div>
+        </div>
+        <div class="building-grid">${buildings.map(b => this.createBuildingCard(b)).join('')}</div>
+      </div>`;
+  },
+
+  async renderBuilding(container) {
+    const buildingName = this.state.currentBuildingName;
+    let building = this.findBuildingByFullPath(buildingName);
+
+    if (!building) {
+      const allProvinceIds = [...(this._provinceMeta?.provinces?.map(p => p.id) || []), 'cross'];
+      await this.loadProvinces(allProvinceIds);
+      building = this.findBuildingByFullPath(buildingName);
+    }
+
+    if (!building) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">🏛️</div><div class="empty-state-title">未找到该建筑</div></div></div>`;
+      return;
+    }
+
+    const provinceStyle = this.getProvinceStyle(building.provinceId);
+    const relatedBuildings = this.getRelatedBuildings(building, 4);
+
+    container.innerHTML = `
+      <div class="container">
+        <article class="building-detail">
+          <header class="building-detail-header" style="border-left-color: ${provinceStyle.color};">
+            <div class="building-detail-icon" style="background: ${provinceStyle.bgColor}; color: ${provinceStyle.color};">🏛️</div>
+            <div class="building-detail-title-wrapper">
+              <h2 class="building-detail-title">${building.name}</h2>
+              <p class="building-detail-location">
+                <span class="location-icon">📍</span> ${building.location}
+                <span class="map-links-inline">
+                  <a href="https://ditu.amap.com/search?query=${encodeURIComponent(building.name)}" target="_blank" class="map-link-inline amap" title="高德地图">🗺️</a>
+                  <a href="https://www.google.com/maps/search/${encodeURIComponent(building.location)}" target="_blank" class="map-link-inline google" title="谷歌地图">🌐</a>
+                </span>
+              </p>
+            </div>
+          </header>
+          <div class="building-detail-sections">
+            <div class="building-detail-section">
+              <h3><span class="section-icon">📋</span> 基本信息</h3>
+              <div class="info-grid">
+                <div class="info-item"><span class="info-label">年代</span><span class="info-value">${building.era}</span></div>
+                <div class="info-item"><span class="info-label">类型</span><span class="info-value">${building.type}</span></div>
+                <div class="info-item"><span class="info-label">所在地区</span><span class="info-value">${building.province} ${building.districtName}</span></div>
+                <div class="info-item"><span class="info-label">保护级别</span><span class="info-value">${building.protectionLevel}</span></div>
+                <div class="info-item"><span class="info-label">公布批次</span><span class="info-value">${building.protectionBatch}</span></div>
+                ${building.worldHeritage ? `<div class="info-item heritage"><span class="info-label">世界遗产</span><span class="info-value">${building.worldHeritageYear}年列入 🌍</span></div>` : ''}
+              </div>
+            </div>
+            <div class="building-detail-section"><h3><span class="section-icon">✨</span> 特色介绍</h3><p class="detail-paragraph">${building.description}</p></div>
+            <div class="building-detail-section"><h3><span class="section-icon">📜</span> 历史背景</h3><p class="detail-paragraph">${building.history}</p></div>
+            <div class="building-detail-section"><h3><span class="section-icon">🏗️</span> 建筑风格</h3><p class="detail-paragraph">${building.architecture}</p></div>
+            <div class="building-detail-section"><h3><span class="section-icon">💎</span> 特色与价值</h3><p class="detail-paragraph">${building.features}</p></div>
+            ${building.sections ? `
+            <div class="building-detail-section"><h3><span class="section-icon">🗺️</span> 分段信息</h3>
+              <div class="sections-grid">${building.sections.map(s => `<div class="section-card"><div class="section-name">${s.name}</div><div class="section-province">${s.province}</div></div>`).join('')}</div>
+            </div>` : ''}
+            <div class="building-detail-section">
+              <h3><span class="section-icon">🏷️</span> 标签</h3>
+              <div class="building-detail-tags">
+                ${(building.tags || []).map((tag, idx) => {
+                  const ts = this.getTagStyle(tag, idx);
+                  return `<span class="building-detail-tag" data-nav href="?page=tag&name=${encodeURIComponent(tag)}" style="background: ${ts.bg}; color: ${ts.color}; border-color: ${ts.color}30;"><span class="tag-icon">${ts.icon}</span> ${tag}</span>`;
+                }).join('')}
+              </div>
+            </div>
+            <div class="building-detail-section">
+              <h3><span class="section-icon">🎬</span> 相关视频</h3>
+              <p class="video-hint">点击下方按钮搜索「${building.name}」的短视频</p>
+              <div class="video-links">
+                <a href="https://www.douyin.com/search/${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link douyin"><span class="video-link-icon">🎵</span><span class="video-link-label">抖音</span></a>
+                <a href="https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link xiaohongshu"><span class="video-link-icon">📕</span><span class="video-link-label">小红书</span></a>
+                <a href="https://search.bilibili.com/all?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link bilibili"><span class="video-link-icon">📺</span><span class="video-link-label">哔哩哔哩</span></a>
+              </div>
+            </div>
+          </div>
+        </article>
+        ${relatedBuildings.length > 0 ? `
+        <section class="related-buildings-section">
+          <h2 class="section-title"><span class="section-icon">🔗</span> 相关推荐</h2>
+          <p class="related-hint">同地区或同类型的其他文物保护单位</p>
+          <div class="building-grid">${relatedBuildings.map(b => this.createBuildingCard(b)).join('')}</div>
+        </section>` : ''}
+      </div>`;
+  },
+
+  _renderTagsAsync(container) {
+    const tags = this.getAllTags();
+    if (tags.length === 0) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">🏷️</div><div class="empty-state-title">暂无标签数据</div></div></div>`;
+      return;
+    }
+    const maxCount = Math.max(...tags.map(t => t.count));
+    const minCount = Math.min(...tags.map(t => t.count));
+    container.innerHTML = `
+      <div class="container">
+        <div class="tags-cloud-modern">
+          ${tags.map((tag, index) => {
+            const ts = this.getTagStyle(tag.name, index);
+            const size = minCount === maxCount ? 16 : 14 + (tag.count - minCount) / (maxCount - minCount) * 10;
+            return `<span class="tag-modern" data-nav href="?page=tag&name=${encodeURIComponent(tag.name)}" style="font-size: ${size}px; background: ${ts.bg}; color: ${ts.color}; border: 1px solid ${ts.color}30;">
+              <span class="tag-modern-icon">${ts.icon}</span>
+              <span class="tag-modern-name">${tag.name}</span>
+              <span class="tag-modern-count" style="background: ${ts.color}20;">${tag.count}</span>
+            </span>`;
+          }).join('')}
+        </div>
+      </div>`;
+  },
+
+  renderTags(container) {
+    if (this._loadedProvinceData.size > 0) {
+      this._renderTagsAsync(container);
+    } else {
+      container.innerHTML = `<div class="container"><div class="loading"><div class="loading-icon">🔄</div><div>正在加载标签数据...</div></div></div>`;
+      this._ensureDataLoaded().then(() => this._renderTagsAsync(container));
+    }
+  },
+
+  renderTagResults(container) {
+    const decodedTag = decodeURIComponent(this.state.currentTag);
+    const doRender = () => {
+      const buildings = this.getBuildingsByTag(decodedTag);
+      const ts = this.getTagStyle(decodedTag, 0);
+      container.innerHTML = `
+        <div class="container">
+          <div class="tag-header" style="background: ${ts.bg}; border: 1px solid ${ts.color}30;">
+            <div class="tag-header-icon" style="background: ${ts.color};">${ts.icon}</div>
+            <div class="tag-header-info">
+              <h2 class="section-title" style="margin: 0;">标签：${decodedTag}</h2>
+              <p style="color: var(--text-secondary); margin: 0.5rem 0 0 0;">共找到 <strong style="color: ${ts.color};">${buildings.length}</strong> 处相关建筑</p>
+            </div>
+          </div>
+          ${buildings.length > 0 ? `<div class="building-grid">${buildings.map(b => this.createBuildingCard(b)).join('')}</div>` : `<div class="empty-state"><div class="empty-state-icon">🏷️</div><div class="empty-state-title">未找到相关建筑</div></div>`}
+        </div>`;
+    };
+    if (this._loadedProvinceData.size > 0) {
+      doRender();
+    } else {
+      container.innerHTML = `<div class="container"><div class="loading"><div class="loading-icon">🔄</div><div>正在加载数据...</div></div></div>`;
+      this._ensureDataLoaded().then(doRender);
+    }
+  },
+
+  _searchDebounceTimer: null,
+
+  renderSearchPage(container) {
+    container.innerHTML = `
+      <div class="container">
+        <div class="search-page">
+          <div class="search-page-input-wrapper">
+            <input type="text" class="search-page-input" placeholder="搜索建筑名称、地点、年代..." id="searchPageInput" autocomplete="off">
+            <button class="search-page-clear" id="searchPageClear" style="display: none;">×</button>
+          </div>
+          <div class="search-page-results" id="searchPageResults">
+            <div class="search-page-hint"><p>输入关键词搜索</p></div>
+          </div>
+        </div>
+      </div>`;
+
+    this._ensureDataLoaded();
+
+    const input = document.getElementById('searchPageInput');
+    const clearBtn = document.getElementById('searchPageClear');
+    const resultsContainer = document.getElementById('searchPageResults');
+
+    if (input) {
+      input.focus();
+      input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        if (this._searchDebounceTimer) clearTimeout(this._searchDebounceTimer);
+        if (query) {
+          clearBtn.style.display = 'flex';
+          this._searchDebounceTimer = setTimeout(() => this.renderSearchPageResults(query, resultsContainer), 250);
+        } else {
+          clearBtn.style.display = 'none';
+          resultsContainer.innerHTML = '<div class="search-page-hint"><p>输入关键词搜索</p></div>';
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        clearBtn.style.display = 'none';
+        resultsContainer.innerHTML = '<div class="search-page-hint"><p>输入关键词搜索</p></div>';
+        input.focus();
+      });
+    }
+  },
+
+  renderSearchPageResults(query, container) {
+    const results = this.searchBuildings(query);
+    if (results.length === 0) {
+      container.innerHTML = `
+        <div class="search-page-empty">
+          <div class="search-empty-icon">🔍</div>
+          <div class="search-empty-title">未找到相关建筑</div>
+          <p>请尝试其他关键词</p>
+          <div class="search-tips"><p>💡 搜索提示：</p><ul><li>支持搜索建筑名称、地址、年代</li><li>支持搜索建筑描述和历史背景</li><li>支持搜索标签和保护批次</li></ul></div>
+        </div>`;
+      return;
+    }
+    container.innerHTML = `
+      <div class="search-results-count">找到 <strong>${results.length}</strong> 处相关建筑 <span class="search-query-text">"${query}"</span></div>
+      <div class="building-grid">${results.map(b => this.createSearchResultCard(b)).join('')}</div>`;
+  },
+
+  async renderCrossProvince(container) {
+    container.innerHTML = `<div class="container"><div class="loading"><div class="loading-icon">🔄</div><div>正在加载跨省数据...</div></div></div>`;
+    const data = await this.loadProvinceData('cross');
+    if (!data || !data.buildings) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">暂无数据</div></div></div>`;
+      return;
+    }
+    const crossStyle = this.getProvinceStyle('cross');
+    container.innerHTML = `
+      <div class="container">
+        <h2 class="section-title"><span class="section-icon">🌊</span> 跨省文物保护单位</h2>
+        <div class="building-grid">
+          ${data.buildings.map(b => this.createBuildingCard({ ...b, province: '跨省', provinceId: 'cross' })).join('')}
+        </div>
+      </div>`;
+  },
+
+  renderTrailList(container) {
+    const registry = this._trailRegistry || [];
+    const typeFilter = this.state.currentTrailType;
+    const filtered = typeFilter ? registry.filter(t => t.type === typeFilter) : registry;
+
+    const typeLabels = { game: '🎮 游戏', story: '📚 故事', route: '🗺️ 路线' };
+
+    container.innerHTML = `
+      <div class="container">
+        <h2 class="section-title"><span class="section-icon">👣</span> 足迹</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">玩游戏，听故事，走古道，看建筑——全方位的中国古建之旅</p>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <a href="?page=trail" class="trail-filter-btn ${!typeFilter ? 'active' : ''}" data-nav>全部</a>
+          ${Object.entries(typeLabels).map(([type, label]) =>
+            `<a href="?page=trail&type=${type}" class="trail-filter-btn ${typeFilter === type ? 'active' : ''}" data-nav>${label}</a>`
+          ).join('')}
+        </div>
+        <div class="topics-grid">
+          ${filtered.map(trail => `
+            <div class="topic-card" data-nav href="?page=trail-detail&id=${trail.id}" style="border-left-color: ${trail.color};">
+              <div class="topic-card-icon" style="background: ${trail.bgColor}; color: ${trail.color};">${trail.icon}</div>
+              <div class="topic-card-content">
+                <div class="topic-card-title">${trail.title}</div>
+                <div class="topic-card-subtitle">${typeLabels[trail.type] || ''} · ${trail.subtitle}</div>
+                <div class="topic-card-desc">${trail.description}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  },
+
+  async renderTrailDetail(container) {
+    const trailId = this.state.currentTrailId;
+    const meta = this._trailRegistry?.find(t => t.id === trailId);
+    if (!meta) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">👣</div><div class="empty-state-title">足迹未找到</div></div></div>`;
+      return;
+    }
+
+    const data = await this._fetchJSON(`trail/${meta.fileName}`);
+    if (!data) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">加载失败</div></div></div>`;
+      return;
+    }
+
+    if (meta.type === 'route') {
+      await this._renderRouteDetail(container, meta, data);
+    } else {
+      await this._renderStoryDetail(container, meta, data);
+    }
+  },
+
+  async _renderStoryDetail(container, meta, data) {
+    const story = data.story;
+    if (!story) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-title">内容未找到</div></div></div>`;
+      return;
+    }
+
+    const provincesToLoad = new Set();
+    story.chapters?.forEach(ch => {
+      ch.buildings?.forEach(b => { if (b?.province) provincesToLoad.add(b.province); });
+    });
+    if (provincesToLoad.size > 0) await this.loadProvinces([...provincesToLoad]);
+
+    container.innerHTML = `
+      <div class="container">
+        <div class="topic-detail-header" style="background: linear-gradient(135deg, ${meta.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${meta.color}25;">
+          <div class="topic-detail-icon" style="background: ${meta.color};">${meta.icon}</div>
+          <div class="topic-detail-info">
+            <h1 class="topic-detail-title">${story.title}</h1>
+            <p class="topic-detail-subtitle">${meta.subtitle}</p>
+          </div>
+        </div>
+        <div class="topic-intro">${story.intro.split('\n\n').map(p => `<p>${p}</p>`).join('')}</div>
+        <div class="topic-chapters">
+          ${story.chapters.map((chapter, index) => {
+            const chapterBuildings = (chapter.buildings || [])
+              .map(b => this._resolveBuildingRef(b))
+              .filter(b => b !== null);
+            return `
+              <div class="topic-chapter" id="chapter-${index}">
+                <h3 class="topic-chapter-title"><span class="topic-chapter-icon">${chapter.icon}</span>${chapter.title}</h3>
+                <div class="topic-chapter-content">${chapter.content.split('\n\n').map(p => `<p>${p}</p>`).join('')}</div>
+                ${chapterBuildings.length > 0 ? `
+                  <div class="topic-chapter-buildings">
+                    <h4 class="topic-buildings-title">🏛️ 相关古建</h4>
+                    <div class="building-grid compact">${chapterBuildings.map(b => this.createBuildingCard(b)).join('')}</div>
+                  </div>` : ''}
+              </div>`;
+          }).join('')}
+        </div>
+        ${story.allBuildings?.length > 0 ? `
+          <div class="topic-all-buildings">
+            <h3 class="section-title"><span class="section-icon">🏛️</span> 涉及古建一览</h3>
+            <div class="building-grid">
+              ${story.allBuildings.map(b => {
+                const building = this._resolveBuildingRef(b);
+                return building ? this.createBuildingCard(building) : '';
+              }).join('')}
+            </div>
+          </div>` : ''}
+      </div>`;
+  },
+
+  async _renderRouteDetail(container, meta, data) {
+    const route = data.route;
+    if (!route) {
+      container.innerHTML = `<div class="container"><div class="empty-state"><div class="empty-state-icon">🗺️</div><div class="empty-state-title">路线未找到</div></div></div>`;
+      return;
+    }
+
+    const provincesToLoad = new Set();
+    route.stops?.forEach(stop => {
+      stop.buildings?.forEach(b => { if (b?.province) provincesToLoad.add(b.province); });
+    });
+    if (provincesToLoad.size > 0) await this.loadProvinces([...provincesToLoad]);
+
+    const totalStops = route.stops?.length || 0;
+
+    container.innerHTML = `
+      <div class="container">
+        <div class="topic-detail-header" style="background: linear-gradient(135deg, ${meta.bgColor} 0%, var(--bg-card) 100%); border: 1px solid ${meta.color}25;">
+          <div class="topic-detail-icon" style="background: ${meta.color};">${meta.icon}</div>
+          <div class="topic-detail-info">
+            <h1 class="topic-detail-title">${route.title}</h1>
+            <p class="topic-detail-subtitle">${meta.subtitle}</p>
+          </div>
+        </div>
+        <div class="topic-intro">${route.intro.split('\n\n').map(p => `<p>${p}</p>`).join('')}</div>
+        <div class="route-timeline" style="position: relative; margin: 2rem 0;">
+          <div class="route-timeline-line" style="position: absolute; left: 24px; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, ${meta.color}40, ${meta.color}); border-radius: 3px;"></div>
+          ${route.stops.map((stop, index) => {
+            const isLast = index === totalStops - 1;
+            const stopBuildings = (stop.buildings || [])
+              .map(b => this._resolveBuildingRef(b))
+              .filter(b => b !== null);
+            return `
+              <div class="route-stop" style="position: relative; padding-left: 64px; margin-bottom: ${isLast ? '0' : '2rem'};">
+                <div class="route-stop-marker" style="position: absolute; left: 12px; top: 0; width: 28px; height: 28px; border-radius: 50%; background: ${meta.color}; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; border: 3px solid var(--bg-card); box-shadow: 0 0 0 3px ${meta.color}40; z-index: 1;">${index + 1}</div>
+                <div class="route-stop-card">
+                  <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); background: linear-gradient(135deg, ${meta.bgColor}80 0%, var(--bg-card) 100%);">
+                    <div style="display: flex; align-items: center; gap: 0.625rem;">
+                      <span style="font-size: 1.25rem;">${stop.icon}</span>
+                      <div>
+                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">${stop.title}</h3>
+                        ${stop.poet ? `<div style="font-size: 0.75rem; color: ${meta.color}; margin-top: 0.25rem;">📜 ${stop.poet}</div>` : ''}
+                      </div>
+                    </div>
+                  </div>
+                  ${stop.poem ? `<div style="padding: 1rem 1.25rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light);"><pre style="font-family: inherit; font-size: 0.875rem; line-height: 1.8; color: var(--text-primary); margin: 0; white-space: pre-wrap;">${stop.poem}</pre></div>` : ''}
+                  <div style="padding: 1rem 1.25rem;"><div class="topic-chapter-content" style="font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary);">${stop.content.split('\n\n').map(p => `<p style="margin: 0 0 0.5rem 0;">${p}</p>`).join('')}</div></div>
+                  ${stopBuildings.length > 0 ? `<div style="padding: 0 1.25rem 1rem;"><div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem;">🏛️ 相关古建</div><div class="building-grid compact">${stopBuildings.map(b => this.createBuildingCard(b)).join('')}</div></div>` : ''}
+                </div>
+                ${!isLast ? `<div style="display: flex; align-items: center; justify-content: center; margin-top: 1rem; margin-left: -64px;"><div style="display: flex; align-items: center; gap: 0.5rem; color: ${meta.color}; font-size: 0.75rem; font-weight: 600;"><span>↓</span><span>前往下一站</span><span>↓</span></div></div>` : ''}
+              </div>`;
+          }).join('')}
+        </div>
+        ${route.allBuildings?.length > 0 ? `
+          <div class="topic-all-buildings">
+            <h3 class="section-title"><span class="section-icon">🏛️</span> 路线涉及古建一览</h3>
+            <div class="building-grid">${route.allBuildings.map(b => { const building = this._resolveBuildingRef(b); return building ? this.createBuildingCard(building) : ''; }).join('')}</div>
+          </div>` : ''}
+      </div>`;
+  },
+
+  getEarliestDynasty(eraStr) {
+    if (!eraStr || eraStr === '待考' || eraStr.startsWith('不可考') || eraStr.startsWith('估计')) return null;
+    const matches = [];
+    for (const e of this.eras) {
+      for (const kw of e.keywords) {
+        if (eraStr.includes(kw)) {
+          matches.push(e);
+          break;
+        }
+      }
+    }
+    if (matches.length > 0) return matches[0].id;
+    const yearMatch = eraStr.match(/(\d{3,4})年/);
+    if (yearMatch) {
+      const year = parseInt(yearMatch[1]);
+      if (year > -500 && year < 2030) {
+        for (const e of this.eras) {
+          if (year >= e.yearMin && year <= e.yearMax) return e.id;
+        }
+      }
+    }
+    return null;
+  },
+
 };
 
-// 页面加载完成后初始化
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => App.init());
-} else {
-    App.init();
-}
+document.addEventListener('DOMContentLoaded', () => App.init());

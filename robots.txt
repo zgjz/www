@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /#search
+Disallow: /?page=search
 
 Sitemap: https://zgjz.org/sitemap.xml
