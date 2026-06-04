@@ -388,61 +388,6 @@ const App = {
     }
   },
 
-  async _loadMapMarkers() {
-    if (!this._markerCluster) return;
-    const allIds = [...(this._provinceMeta?.provinces?.map(p => p.id) || []), 'cross'];
-    const totalCountEl = document.getElementById('mapTotalCount');
-    if (totalCountEl) totalCountEl.textContent = allIds.length;
-    const batchSize = 5;
-    const loadedCount = document.getElementById('mapLoadedCount');
-    const addedNames = new Set();
-    let totalBuildings = 0;
-    const categoryCounts = {};
-
-    for (let i = 0; i < allIds.length; i += batchSize) {
-      if (!this._markerCluster) return;
-      const batch = allIds.slice(i, i + batchSize);
-      try { await Promise.all(batch.map(id => this.loadProvinceData(id))); } catch (_) {}
-
-      this._allBuildingsCache = null;
-      const allBuildings = this.getAllBuildings();
-
-      for (const b of allBuildings) {
-        const key = `${b.provinceId}_${b.district}_${b.name}`;
-        if (addedNames.has(key)) continue;
-        if (b.lat === undefined || b.lng === undefined) continue;
-        addedNames.add(key);
-        const marker = this._createMapMarker(b);
-        const eraId = this.getEarliestDynasty(b.era);
-        this._mapMarkers.push({ marker, categoryKey: marker._categoryKey, eraId });
-        // Apply current filters
-        if (this._passesMapFilters(marker._categoryKey, eraId)) {
-          this._markerCluster.addLayer(marker);
-        }
-        totalBuildings++;
-        const cat = this.getBuildingCategory(b).key;
-        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-      }
-
-      const loaded = Math.min(i + batchSize, allIds.length);
-      if (loadedCount) loadedCount.textContent = loaded;
-      const statTotal = document.getElementById('mapStatTotal');
-      const statLoaded = document.getElementById('mapStatLoaded');
-      const statCategories = document.getElementById('mapStatCategories');
-      if (statTotal) statTotal.textContent = totalBuildings;
-      if (statLoaded) statLoaded.textContent = loaded;
-      if (statCategories) statCategories.textContent = Object.keys(categoryCounts).length;
-    }
-
-    this._updateMapStats();
-
-    const mapOverlay = document.getElementById('mapLoadingOverlay');
-    if (mapOverlay) {
-      mapOverlay.style.opacity = '0';
-      setTimeout(() => { if (mapOverlay) mapOverlay.style.display = 'none'; }, 500);
-    }
-  },
-
   _passesMapFilters(categoryKey, eraId) {
     const catOk = this._activeCategoryFilter === 'all' || categoryKey === this._activeCategoryFilter;
     const eraOk = this._activeEraFilter === 'all' || (eraId && eraId === this._activeEraFilter);
@@ -1094,41 +1039,13 @@ const App = {
     this._activeCategoryFilter = 'all';
 
     const allProvinceIds = [...(this._provinceMeta?.provinces?.map(p => p.id) || []), 'cross'];
-    await Promise.all(allProvinceIds.map(id => this.loadProvinceData(id)));
-    this._allBuildingsCache = null;
-    this._mapMarkers = [];
 
-    // Precompute dynasty building counts
-    const dynastyBuildings = {};
-    const allB = this.getAllBuildings();
-    for (const b of allB) {
-      const did = this.getEarliestDynasty(b.era);
-      if (did) {
-        if (!dynastyBuildings[did]) dynastyBuildings[did] = [];
-        dynastyBuildings[did].push(b);
-      }
-    }
-
+    // Render map shell immediately — user sees UI right away
     container.innerHTML = `
       <div class="map-page">
         <div class="map-timeline-bar" id="mapTimeline">
           <div class="era-timeline-all active" data-era="all">全部</div>
-          <div class="era-timeline-track">
-            ${this.eras.filter(e => e.timeline !== false).map((e) => {
-              const count = dynastyBuildings[e.id]?.length || 0;
-              const color = this._eraColors[e.id] || '#888';
-              const startYr = isFinite(e.yearMin) ? e.yearMin : -50000;
-              const rawSpan = Math.max(1, e.yearMax - startYr);
-              const exponent = e.yearMax < -1000 ? 0.18 : 0.32;
-              const flexVal = Math.max(3, Math.min(14, Math.pow(rawSpan, exponent)));
-              return `<div class="era-timeline-block${count === 0 ? ' empty' : ''}"
-                data-era="${e.id}"
-                style="flex:${flexVal}; background:${color};"
-                title="${e.name}（${count}处）">
-                <span class="era-timeline-label">${e.name}</span>
-              </div>`;
-            }).join('')}
-          </div>
+          <div class="era-timeline-track" id="eraTimelineTrack"></div>
         </div>
 
         <div class="map-legend" id="mapLegend">
@@ -1202,11 +1119,91 @@ const App = {
       });
     }
 
+    // Init map immediately (empty, no markers yet)
     const mapEl = document.getElementById('mapFull');
-    if (mapEl) {
-      this._initMap(mapEl);
-      this._loadMapMarkers();
+    if (mapEl) this._initMap(mapEl);
+
+    // Load data and add markers progressively in the background
+    this._loadMapDataAsync(allProvinceIds);
+  },
+
+  async _loadMapDataAsync(allIds) {
+    this._mapMarkers = [];
+    const addedNames = new Set();
+    let totalBuildings = 0;
+    const dynastyCounts = {};
+    const loadedProvinces = new Set();
+    const batchSize = 5;
+
+    const totalCountEl = document.getElementById('mapTotalCount');
+    if (totalCountEl) totalCountEl.textContent = allIds.length;
+
+    for (let i = 0; i < allIds.length; i += batchSize) {
+      if (!this._markerCluster) return;
+      const batch = allIds.slice(i, i + batchSize);
+      try { await Promise.all(batch.map(id => this.loadProvinceData(id))); } catch (_) {}
+
+      for (const id of batch) {
+        const data = this._cache.provinceData.get(id);
+        if (!data?.buildings) continue;
+        loadedProvinces.add(id);
+        for (const b of data.buildings) {
+          const key = `${id}_${b.district}_${b.name}`;
+          if (addedNames.has(key)) continue;
+          if (b.lat === undefined || b.lng === undefined) continue;
+          addedNames.add(key);
+          const marker = this._createMapMarker(b);
+          const eraId = this.getEarliestDynasty(b.era);
+          this._mapMarkers.push({ marker, categoryKey: marker._categoryKey, eraId });
+          if (this._passesMapFilters(marker._categoryKey, eraId)) {
+            this._markerCluster.addLayer(marker);
+          }
+          totalBuildings++;
+          if (eraId) dynastyCounts[eraId] = (dynastyCounts[eraId] || 0) + 1;
+        }
+      }
+
+      // Update progress
+      const loaded = loadedProvinces.size;
+      const loadedCount = document.getElementById('mapLoadedCount');
+      const statLoaded = document.getElementById('mapStatLoaded');
+      const statTotal = document.getElementById('mapStatTotal');
+      if (loadedCount) loadedCount.textContent = loaded;
+      if (statLoaded) statLoaded.textContent = loaded;
+      if (statTotal) statTotal.textContent = totalBuildings;
+
+      // Render timeline and hide overlay after first batch
+      if (i === 0) {
+        this._renderTimeline(dynastyCounts);
+        this._updateMapStats();
+        const overlay = document.getElementById('mapLoadingOverlay');
+        if (overlay) {
+          overlay.style.opacity = '0';
+          setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 300);
+        }
+      }
     }
+
+    this._updateMapStats();
+  },
+
+  _renderTimeline(dynastyCounts) {
+    const track = document.getElementById('eraTimelineTrack');
+    if (!track) return;
+    track.innerHTML = this.eras.filter(e => e.timeline !== false).map(e => {
+      const count = dynastyCounts[e.id] || 0;
+      const color = this._eraColors[e.id] || '#888';
+      const startYr = isFinite(e.yearMin) ? e.yearMin : -50000;
+      const rawSpan = Math.max(1, e.yearMax - startYr);
+      const exponent = e.yearMax < -1000 ? 0.18 : 0.32;
+      const flexVal = Math.max(3, Math.min(14, Math.pow(rawSpan, exponent)));
+      return `<div class="era-timeline-block${count === 0 ? ' empty' : ''}"
+        data-era="${e.id}"
+        style="flex:${flexVal}; background:${color};"
+        title="${e.name}（${count}处）">
+        <span class="era-timeline-label">${e.name}</span>
+      </div>`;
+    }).join('');
   },
 
   async _renderHomeTrails(container) {
