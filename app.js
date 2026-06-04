@@ -356,10 +356,24 @@ const App = {
       zoomControl: true,
       attributionControl: false
     });
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 18,
-      minZoom: 3
-    }).addTo(this._map);
+    const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18, minZoom: 3, attribution: '© OpenStreetMap'
+    });
+    const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 18, minZoom: 3
+    });
+    const road = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 18, minZoom: 3, opacity: 0.7
+    });
+    const labels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 18, minZoom: 3, opacity: 0.6
+    });
+    var satGroup = L.layerGroup([sat, road, labels]);
+    L.control.layers({
+      '标准': osm,
+      '卫星': satGroup
+    }, null, { position: 'bottomleft', collapsed: true }).addTo(this._map);
+    satGroup.addTo(this._map);
     this._markerCluster = L.markerClusterGroup({
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
@@ -489,7 +503,7 @@ const App = {
           </div>
           ${protectionBadge ? `<div class="map-popup-badge">${protectionBadge}</div>` : ''}
           <p class="map-popup-desc">${this.truncateText(building.description, 80)}</p>
-          <a href="${this.generateBuildingHash(building)}" class="map-popup-link" data-nav>查看详情 →</a>
+          <a href="${this.generateBuildingHash(building)}" target="_blank" class="map-popup-link">查看详情 →</a>
         </div>
       </div>`;
     marker.bindPopup(popupContent, { maxWidth: 280, className: 'map-popup-container' });
@@ -669,6 +683,8 @@ const App = {
     }
     return byName;
   },
+
+
 
   setupTheme() {
     document.documentElement.setAttribute('data-theme', this.state.theme);
@@ -934,7 +950,7 @@ const App = {
         <div class="building-card-header" style="background: ${provinceStyle.bgColor};">
           <div class="building-card-header-left">
             <div class="building-province-icon" style="color: ${provinceStyle.color};">${provinceStyle.icon}</div>
-            <div class="building-district">${building.districtName}</div>
+            <div class="building-district">${building.districtName === '跨省文物保护单位' ? '跨省' : building.districtName}</div>
           </div>
           ${protectionBadge}
         </div>
@@ -977,7 +993,7 @@ const App = {
         <div class="building-card-header" style="background: ${provinceStyle.bgColor};">
           <div class="building-card-header-left">
             <div class="building-province-icon" style="color: ${provinceStyle.color};">${provinceStyle.icon}</div>
-            <div class="building-district">${building.districtName}</div>
+            <div class="building-district">${building.districtName === '跨省文物保护单位' ? '跨省' : building.districtName}</div>
           </div>
           ${protectionBadge}
         </div>
@@ -1465,7 +1481,6 @@ const App = {
 
     const provinceStyle = this.getProvinceStyle(building.provinceId);
     const relatedBuildings = this.getRelatedBuildings(building, 4);
-
     container.innerHTML = `
       <div class="container">
         <article class="building-detail">
@@ -1476,7 +1491,7 @@ const App = {
               <p class="building-detail-location">
                 <span class="location-icon">📍</span> ${building.location}
                 <span class="map-links-inline">
-                  <a href="https://ditu.amap.com/search?query=${encodeURIComponent(building.name)}" target="_blank" class="map-link-inline amap" title="高德地图">🗺️</a>
+                  <a href="https://ditu.amap.com/search?query=${encodeURIComponent((building.province || this.getProvinceName(building.provinceId) || '') + (building.districtName || '') + building.name)}" target="_blank" class="map-link-inline amap" title="高德地图">🗺️</a>
                   <a href="https://www.google.com/maps/search/${encodeURIComponent(building.location)}" target="_blank" class="map-link-inline google" title="谷歌地图">🌐</a>
                 </span>
               </p>
@@ -1484,14 +1499,22 @@ const App = {
           </header>
           <div class="building-detail-sections">
             <div class="building-detail-section">
+              <h3><span class="section-icon">🎬</span> 相关视频</h3>
+              <div class="video-links">
+                  <a href="https://www.douyin.com/search/${encodeURIComponent((building.province || this.getProvinceName(building.provinceId) || '') + (building.districtName || '') + building.name)}" target="_blank" rel="noopener" class="video-link douyin">🎵 抖音</a>
+                  <a href="https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent((building.province || this.getProvinceName(building.provinceId) || '') + (building.districtName || '') + building.name)}" target="_blank" rel="noopener" class="video-link xiaohongshu">📕 小红书</a>
+                  <a href="https://search.bilibili.com/all?keyword=${encodeURIComponent((building.province || this.getProvinceName(building.provinceId) || '') + (building.districtName || '') + building.name)}" target="_blank" rel="noopener" class="video-link bilibili">📺 哔哩哔哩</a>
+              </div>
+            </div>
+            <div class="building-detail-section">
               <h3><span class="section-icon">📋</span> 基本信息</h3>
               <div class="info-grid">
                 <div class="info-item"><span class="info-label">年代</span><span class="info-value">${building.era}</span></div>
                 <div class="info-item"><span class="info-label">类型</span><span class="info-value">${building.type}</span></div>
-                <div class="info-item"><span class="info-label">所在地区</span><span class="info-value">${building.province} ${building.districtName}</span></div>
-                <div class="info-item"><span class="info-label">保护级别</span><span class="info-value">${building.protectionLevel}</span></div>
-                <div class="info-item"><span class="info-label">公布批次</span><span class="info-value">${building.protectionBatch}</span></div>
-                ${building.worldHeritage ? `<div class="info-item heritage"><span class="info-label">世界遗产</span><span class="info-value">${building.worldHeritageYear}年列入 🌍</span></div>` : ''}
+                <div class="info-item"><span class="info-label">地区</span><span class="info-value">${building.province} ${building.districtName}</span></div>
+                <div class="info-item"><span class="info-label">级别</span><span class="info-value">${building.protectionLevel}</span></div>
+                <div class="info-item"><span class="info-label">批次</span><span class="info-value">${building.protectionBatch}</span></div>
+                ${building.worldHeritage ? `<div class="info-item heritage"><span class="info-label">世界遗产</span><span class="info-value">${building.worldHeritageYear}年 🌍</span></div>` : ''}
               </div>
             </div>
             <div class="building-detail-section"><h3><span class="section-icon">✨</span> 特色介绍</h3><p class="detail-paragraph">${building.description}</p></div>
@@ -1509,15 +1532,6 @@ const App = {
                   const ts = this.getTagStyle(tag, idx);
                   return `<span class="building-detail-tag" data-nav href="?page=tag&name=${encodeURIComponent(tag)}" style="background: ${ts.bg}; color: ${ts.color}; border-color: ${ts.color}30;"><span class="tag-icon">${ts.icon}</span> ${tag}</span>`;
                 }).join('')}
-              </div>
-            </div>
-            <div class="building-detail-section">
-              <h3><span class="section-icon">🎬</span> 相关视频</h3>
-              <p class="video-hint">点击下方按钮搜索「${building.name}」的短视频</p>
-              <div class="video-links">
-                <a href="https://www.douyin.com/search/${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link douyin"><span class="video-link-icon">🎵</span><span class="video-link-label">抖音</span></a>
-                <a href="https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link xiaohongshu"><span class="video-link-icon">📕</span><span class="video-link-label">小红书</span></a>
-                <a href="https://search.bilibili.com/all?keyword=${encodeURIComponent(building.name)}" target="_blank" rel="noopener" class="video-link bilibili"><span class="video-link-icon">📺</span><span class="video-link-label">哔哩哔哩</span></a>
               </div>
             </div>
           </div>
