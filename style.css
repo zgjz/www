@@ -1734,13 +1734,25 @@ a:hover {
     gap: 0.1rem;
 }
 
-.map-stat-remaining {
+.map-stat-loading-num {
+    font-weight: 700 !important;
+    color: var(--accent-color) !important;
+    animation: pulse-loading 1s ease-in-out infinite;
+}
+
+.map-stat-loading-text {
     font-size: 0.6rem;
-    font-weight: 600;
+    font-weight: 500;
+    color: var(--accent-color);
     white-space: nowrap;
-    transition: color 0.3s;
-    text-align: left;
     line-height: 1.4rem;
+    margin-left: 0.15rem;
+    animation: pulse-loading 1s ease-in-out infinite;
+}
+
+@keyframes pulse-loading {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 .map-stat-loading {

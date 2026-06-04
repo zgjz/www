@@ -1074,9 +1074,10 @@ const App = {
             </div>
             <span class="map-stat-sep">·</span>
             <div class="map-stat-item map-stat-loading" id="mapStatLoading">
-              <span class="map-stat-num" id="mapStatLoaded" style="font-weight:600;color:var(--accent-color);">0</span>
-              <span class="map-stat-label" style="font-size:0.6rem;">/<span id="mapTotalCount2">0</span></span>
-              <span class="map-stat-remaining" id="mapStatRemaining"></span>
+              <span class="map-stat-num map-stat-loading-num" id="mapStatLoaded">0</span>
+              <span class="map-stat-sep" style="font-size:0.5rem;">/</span>
+              <span class="map-stat-num map-stat-loading-num" id="mapTotalCount2">${allProvinceIds.length}</span>
+              <span class="map-stat-loading-text" id="mapStatLoadingText">数据加载中</span>
             </div>
           </div>
           <span class="map-stats-tip">⚠️ 港澳台建筑位置为近似坐标</span>
@@ -1130,9 +1131,7 @@ const App = {
     const loadedProvinces = new Set();
     const batchSize = 5;
 
-    const totalCount2El = document.getElementById('mapTotalCount2');
     const progressFill = document.getElementById('mapProgressFill');
-    if (totalCount2El) totalCount2El.textContent = allIds.length;
 
     for (let i = 0; i < allIds.length; i += batchSize) {
       if (!this._markerCluster) return;
@@ -1160,19 +1159,13 @@ const App = {
       }
 
       // Update progress
-      const loaded = loadedProvinces.size;
-      const remaining = allIds.length - loaded;
-      const pct = Math.round(loaded / allIds.length * 100);
+      const batchLoaded = loadedProvinces.size;
+      const pct = Math.round(batchLoaded / allIds.length * 100);
       const statLoaded = document.getElementById('mapStatLoaded');
       const statTotal = document.getElementById('mapStatTotal');
-      const statRemaining = document.getElementById('mapStatRemaining');
-      if (statLoaded) statLoaded.textContent = loaded;
+      if (statLoaded) statLoaded.textContent = batchLoaded;
       if (statTotal) statTotal.textContent = totalBuildings;
       if (progressFill) progressFill.style.width = pct + '%';
-      if (statRemaining) {
-        statRemaining.textContent = remaining > 0 ? `· 剩余${remaining}省` : '';
-        statRemaining.className = 'map-stat-remaining' + (remaining > 0 ? ' loading' : '');
-      }
 
       // Render timeline after first batch
       if (i === 0) {
@@ -1183,6 +1176,8 @@ const App = {
 
     this._updateMapStats();
     if (progressFill) progressFill.style.opacity = '0';
+    const doneLoadingEl = document.getElementById('mapStatLoading');
+    if (doneLoadingEl) doneLoadingEl.style.display = 'none';
   },
 
   _renderTimeline(dynastyCounts) {
